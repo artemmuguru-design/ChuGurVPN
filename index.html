@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>3D WALK — Очки и трюки</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#73c9ff;font-family:Arial,sans-serif;}
+#game{position:fixed;inset:0;overflow:hidden;}
+canvas{display:block;width:100%;height:100%;} 
+#loading{position:absolute;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;color:white;background:#73c9ff;font-size:17px;} 
+#startScreen{position:absolute;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;background:linear-gradient(#73c9ff,#3d9ed4,#2273a6);}
+#startScreen h1{margin-bottom:8px;font-size:30px;letter-spacing:3px;font-weight:900;}
+#startScreen p{margin-bottom:25px;color:#e8f7ff;font-size:14px;}
+#startButton{border:none;border-radius:15px;padding:16px 34px;background:white;color:#111;font-size:17px;font-weight:900;box-shadow:0 8px 30px rgba(0,0,0,.3);cursor:pointer;}
+#startButton:active{transform:scale(.95);} 
+#controls{position:fixed;inset:0;pointer-events:none;z-index:50;}
+#controls>*{pointer-events:auto;} 
+#joystickArea{position:absolute;left:0;bottom:0;width:50%;height:70%;touch-action:none;}
+#jumpBtn{position:absolute;right:30px;bottom:40px;width:80px;height:80px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:white;font-size:34px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,.3);cursor:pointer;transition:all .15s;}
+#jumpBtn:active{transform:scale(.88);background:rgba(255,255,255,.2);} 
+#skateBtn{position:absolute;left:30px;top:50%;transform:translateY(-50%);width:70px;height:70px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:white;font-size:36px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,.3);cursor:pointer;transition:all .15s;}
+#skateBtn:active{transform:translateY(-50%) scale(.88);background:rgba(255,255,255,.2);} 
+#skateBtn.active{background:rgba(76,175,80,.5);border-color:rgba(76,175,80,.8);}
+#joystick{position:absolute;left:80px;bottom:100px;width:130px;height:130px;border-radius:50%;background:rgba(0,0,0,.15);border:2px solid rgba(255,255,255,.1);backdrop-filter:blur(4px);display:none;pointer-events:none;transform:translate(-50%,-50%);}
+#joystick.active{display:block;}
+#stick{position:absolute;left:50%;top:50%;width:54px;height:54px;margin-left:-27px;margin-top:-27px;border-radius:50%;background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.15);box-shadow:0 0 30px rgba(0,0,0,.2);pointer-events:none;} 
+#landscape{position:absolute;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;flex-direction:column;color:white;background:#111;text-align:center;}
+.rotateIcon{font-size:60px;margin-bottom:15px;}
+@media(orientation:portrait) and (max-width:700px){#landscape{display:flex;}} 
+.hidden{display:none!important;}
+
+/* ТАБЛИЧКА ОЧКОВ */
+#scoreBoard{position:fixed;left:10px;bottom:10px;z-index:100;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.7);padding:8px 12px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;}
+#scoreEmoji{font-size:24px;}
+#scoreText{color:white;font-size:16px;font-weight:900;font-family:Arial,sans-serif;min-width:80px;}
+#statusEmoji{font-size:24px;}
+</style>
+</head>
+<body>
+<div id="game">
+<div id="loading">Загрузка...</div>
+<div id="landscape"><div class="rotateIcon">📱↔️</div><div>Поверни телефон горизонтально</div></div>
+<div id="startScreen"><h1>🚶 3D WALK</h1><p>Скейт-парк с очками</p><button id="startButton">▶ НАЧАТЬ</button></div> 
+
+<div id="controls">
+<div id="joystickArea"></div>
+<button id="jumpBtn">⬆</button>
+<button id="skateBtn">🛹</button>
+<div id="joystick"><div id="stick"></div></div>
+</div>
+
+<!-- ТАБЛИЧКА ОЧКОВ -->
+<div id="scoreBoard">
+<span id="scoreEmoji">🥉</span>
+<span id="scoreText">0</span>
+<span id="statusEmoji">🥉</span>
+</div>
+</div> 
+
+<script type="importmap">
+{
+"imports": {
+"three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+}
+}
+</script> 
+
+<script type="module">
+import * as THREE from 'three'; 
+
+// ============================================
+// 1. ИНИЦИАЛИЗАЦИЯ
+// ============================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB); 
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.getElementById('game').appendChild(renderer.domElement); 
+
+// ============================================
+// 2. СВЕТ
+// ============================================
+const ambient = new THREE.AmbientLight(0x8899bb, 0.4);
+scene.add(ambient); 
+
+const hemi = new THREE.HemisphereLight(0x87CEEB, 0x3a7d44, 1.2);
+scene.add(hemi); 
+
+const sun = new THREE.DirectionalLight(0xffeedd, 2.8);
+sun.position.set(40, 60, 30);
+sun.castShadow = true;
+sun.shadow.mapSize.width = 2048;
+sun.shadow.mapSize.height = 2048;
+sun.shadow.camera.near = 0.5;
+sun.shadow.camera.far = 150;
+sun.shadow.camera.left = -80;
+sun.shadow.camera.right = 80;
+sun.shadow.camera.top = 80;
+sun.shadow.camera.bottom = -80;
+sun.shadow.bias = -0.001;
+scene.add(sun); 
+
+const fill = new THREE.DirectionalLight(0x88ccff, 0.5);
+fill.position.set(-30, 20, -20);
+scene.add(fill); 
+
+// ============================================
+// 3. ПОЛЯНА
+// ============================================
+const groundGeo = new THREE.PlaneGeometry(300, 300);
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x4CAF50, roughness: 0.9 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = 0;
+ground.receiveShadow = true;
+scene.add(ground); 
+
+// ============================================
+// 4. МАТЕРИАЛЫ
+// ============================================
+const concreteMat = new THREE.MeshStandardMaterial({ color: 0x9e9e9e, roughness: 0.7 });
+const darkConcreteMat = new THREE.MeshStandardMaterial({ color: 0x7a7a7a, roughness: 0.65 });
+const metalMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, roughness: 0.2, metalness: 0.9 });
+const graniteMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c, roughness: 0.5 });
+const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4f3a, roughness: 0.9 });
+const treeLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.8 });
+
+// ============================================
+// 5. КОЛЛИЗИИ
+// ============================================
+const colliders = [];
+
+function addBoxCollider(mesh) {
+    colliders.push({ type: 'box', mesh: mesh, getBox: () => new THREE.Box3().setFromObject(mesh) });
+}
+function addCylinderCollider(mesh, radius, height) {
+    colliders.push({ type: 'cylinder', mesh: mesh, radius: radius, height: height, getPosition: () => mesh.getWorldPosition(new THREE.Vector3()) });
+}
+function addSphereCollider(mesh, radius) {
+    colliders.push({ type: 'sphere', mesh: mesh, radius: radius, getPosition: () => mesh.getWorldPosition(new THREE.Vector3()) });
+}
+
+// ============================================
+// 6. СКЕЙТ-ПАРК
+// ============================================
+const platform = new THREE.Mesh(new THREE.BoxGeometry(40, 0.5, 40), concreteMat);
+platform.position.set(0, 0.25, 0);
+platform.receiveShadow = true;
+platform.castShadow = true;
+scene.add(platform);
+addBoxCollider(platform);
+
+for (let side of [-1, 1]) {
+    const border1 = new THREE.Mesh(new THREE.BoxGeometry(40, 0.8, 0.5), concreteMat);
+    border1.position.set(0, 0.65, side * 20);
+    border1.castShadow = true;
+    border1.receiveShadow = true;
+    scene.add(border1);
+    addBoxCollider(border1);
+    
+    const border2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 40), concreteMat);
+    border2.position.set(side * 20, 0.65, 0);
+    border2.castShadow = true;
+    border2.receiveShadow = true;
+    scene.add(border2);
+    addBoxCollider(border2);
+}
+
+const bowlGroup = new THREE.Group();
+bowlGroup.position.set(-8, 0.5, -8);
+scene.add(bowlGroup);
+const bowl = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), darkConcreteMat);
+bowl.scale.y = 0.5;
+bowl.position.y = 0;
+bowl.receiveShadow = true;
+bowl.castShadow = true;
+bowlGroup.add(bowl);
+addSphereCollider(bowl, 3);
+
+// Рейл
+const railGroup = new THREE.Group();
+railGroup.position.set(10, 0.5, -12);
+scene.add(railGroup);
+const longRail = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12, 16), metalMat);
+longRail.rotation.z = Math.PI / 2;
+longRail.position.y = 2;
+longRail.castShadow = true;
+longRail.receiveShadow = true;
+railGroup.add(longRail);
+addCylinderCollider(longRail, 0.3, 12);
+
+for (let i = -1; i <= 1; i += 2) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 2, 8), metalMat);
+    post.position.set(i * 5, 1, 0);
+    post.castShadow = true;
+    railGroup.add(post);
+    addCylinderCollider(post, 0.15, 2);
+}
+
+const quarterPipeGroup = new THREE.Group();
+quarterPipeGroup.position.set(15, 0.5, 0);
+scene.add(quarterPipeGroup);
+const qp = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 12, 16, 1, false, 0, Math.PI / 2), darkConcreteMat);
+qp.rotation.z = Math.PI / 2;
+qp.position.y = 0;
+qp.castShadow = true;
+qp.receiveShadow = true;
+quarterPipeGroup.add(qp);
+addSphereCollider(qp, 4);
+
+const stairsGroup = new THREE.Group();
+stairsGroup.position.set(0, 0.5, 15);
+scene.add(stairsGroup);
+for (let i = 0; i < 4; i++) {
+    const step = new THREE.Mesh(new THREE.BoxGeometry(8, 0.5, 2), darkConcreteMat);
+    step.position.set(0, i * 0.5 + 0.25, i * 2);
+    step.castShadow = true;
+    step.receiveShadow = true;
+    stairsGroup.add(step);
+    addBoxCollider(step);
+}
+
+const mannyPad = new THREE.Mesh(new THREE.BoxGeometry(6, 0.4, 3), graniteMat);
+mannyPad.position.set(-15, 0.7, 10);
+mannyPad.castShadow = true;
+mannyPad.receiveShadow = true;
+scene.add(mannyPad);
+addBoxCollider(mannyPad);
+
+for (let i = 0; i < 15; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 25 + Math.random() * 80;
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+    
+    const tree = new THREE.Group();
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 3, 8), treeTrunkMat);
+    trunk.position.y = 1.5;
+    trunk.castShadow = true;
+    trunk.receiveShadow = true;
+    tree.add(trunk);
+    addCylinderCollider(trunk, 0.5, 3);
+    
+    for(let j = 0; j < 3; j++) {
+        const leaves = new THREE.Mesh(new THREE.ConeGeometry(2.5 - j * 0.5, 2, 8), treeLeavesMat);
+        leaves.position.y = 3.5 + j * 1.5;
+        leaves.castShadow = true;
+        leaves.receiveShadow = true;
+        tree.add(leaves);
+    }
+    
+    tree.position.set(x, 0, z);
+    scene.add(tree);
+}
+
+// ============================================
+// 7. МОДЕЛЬ ИГРОКА
+// ============================================
+const player = new THREE.Group();
+player.position.set(5, 0.5, 5);
+player.scale.set(0.42, 0.42, 0.42);
+scene.add(player);
+
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.7 });
+const skinMat = new THREE.MeshStandardMaterial({ color: 0xe8b88a, roughness: 0.6 });
+const jeansMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.8 });
+const shoeMat = new THREE.MeshStandardMaterial({ color: 0x34495e, roughness: 0.7 });
+const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.3 });
+
+const torso = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.2, 1.3), bodyMat);
+torso.position.y = 3.2;
+torso.castShadow = true;
+player.add(torso);
+
+const head = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.7, 1.6), skinMat);
+head.position.y = 5.2;
+head.castShadow = true;
+player.add(head);
+
+const eyeGroup = new THREE.Group();
+eyeGroup.position.set(0, 5.35, 0);
+player.add(eyeGroup);
+const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), eyeMat);
+leftEye.position.set(-0.5, 0.1, 0.8);
+eyeGroup.add(leftEye);
+const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), eyeMat);
+rightEye.position.set(0.5, 0.1, 0.8);
+eyeGroup.add(rightEye);
+
+const arms = [];
+for (let side of [-1, 1]) {
+    const arm = new THREE.Group();
+    arm.position.set(side * 1.6, 4.0, 0);
+    const upper = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.4, 0.7), bodyMat);
+    upper.position.y = -0.7;
+    upper.castShadow = true;
+    arm.add(upper);
+    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, 0.7), skinMat);
+    hand.position.y = -1.6;
+    hand.castShadow = true;
+    arm.add(hand);
+    player.add(arm);
+    arms.push(arm);
+}
+
+const legs = [];
+for (let side of [-1, 1]) {
+    const leg = new THREE.Group();
+    leg.position.set(side * 0.65, 2.2, 0);
+    const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.6, 0.9), jeansMat);
+    thigh.position.y = -0.8;
+    thigh.castShadow = true;
+    leg.add(thigh);
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 1.6), shoeMat);
+    shoe.position.set(0, -1.8, 0.2);
+    shoe.castShadow = true;
+    leg.add(shoe);
+    player.add(leg);
+    legs.push(leg);
+}
+
+const skateboard = new THREE.Group();
+skateboard.position.set(0, 0.15, 0.3);
+skateboard.visible = false;
+player.add(skateboard);
+const deckMat = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.6 });
+const wheelMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 });
+const deck = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, 3.5), deckMat);
+deck.position.y = 0.5;
+deck.castShadow = true;
+deck.receiveShadow = true;
+skateboard.add(deck);
+for (let side of [-1, 1]) {
+    for (let front of [-1, 1]) {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.25, 8), wheelMat);
+        wheel.rotation.x = Math.PI / 2;
+        wheel.position.set(side * 0.7, 0.3, front * 1.2);
+        wheel.castShadow = true;
+        wheel.receiveShadow = true;
+        skateboard.add(wheel);
+    }
+}
+
+// ============================================
+// 8. СИСТЕМА ОЧКОВ И ТРЮКОВ
+// ============================================
+let score = 0;
+let status = 'bronze'; // bronze, silver, gold
+let trickTimer = 0;
+let nextTrickTime = 20 + Math.random() * 20; // 20-40 секунд
+let isPerformingTrick = false;
+let trickAnimationTime = 0;
+let currentTrick = '';
+
+// Элементы интерфейса
+const scoreText = document.getElementById('scoreText');
+const scoreEmoji = document.getElementById('scoreEmoji');
+const statusEmoji = document.getElementById('statusEmoji');
+
+function updateScoreDisplay() {
+    scoreText.textContent = score.toLocaleString();
+    
+    if (score >= 42000000) {
+        status = 'gold';
+        statusEmoji.textContent = '🥇';
+        scoreEmoji.textContent = '🥇';
+    } else if (score >= 1000000) {
+        status = 'silver';
+        statusEmoji.textContent = '🥈';
+        scoreEmoji.textContent = '🥈';
+    } else {
+        status = 'bronze';
+        statusEmoji.textContent = '🥉';
+        scoreEmoji.textContent = '🥉';
+    }
+}
+
+function performRandomTrick() {
+    if (!isSkating || !gameStarted) return;
+    
+    const tricks = ['backflip', 'frontflip', 'kickflip'];
+    const trick = tricks[Math.floor(Math.random() * 3)];
+    currentTrick = trick;
+    
+    let points = 0;
+    if (status === 'bronze') {
+        points = Math.floor(Math.random() * 1000) + 1; // 1-1000
+    } else if (status === 'silver') {
+        points = Math.floor(Math.random() * 4000) + 1000; // 1000-5000
+    } else {
+        points = Math.floor(Math.random() * 37000) + 5000; // 5000-42000
+    }
+    
+    score += points;
+    updateScoreDisplay();
+    
+    // Анимация трюка
+    isPerformingTrick = true;
+    trickAnimationTime = 1.5; // 1.5 секунды на трюк
+    
+    console.log(`🎯 Трюк: ${trick}, очки: +${points}, всего: ${score}`);
+}
+
+function updateTrickSystem(delta) {
+    if (!gameStarted || !isSkating) return;
+    
+    // Таймер до следующего трюка
+    trickTimer += delta;
+    
+    if (trickTimer >= nextTrickTime && !isPerformingTrick) {
+        performRandomTrick();
+        trickTimer = 0;
+        nextTrickTime = 20 + Math.random() * 20; // Следующий трюк через 20-40 секунд
+    }
+    
+    // Анимация трюка
+    if (isPerformingTrick) {
+        trickAnimationTime -= delta;
+        
+        if (currentTrick === 'backflip') {
+            player.rotation.x += delta * 8;
+        } else if (currentTrick === 'frontflip') {
+            player.rotation.x -= delta * 8;
+        } else if (currentTrick === 'kickflip') {
+            player.rotation.z += delta * 12;
+        }
+        
+        if (trickAnimationTime <= 0) {
+            isPerformingTrick = false;
+            player.rotation.x = 0;
+            player.rotation.z = 0;
+            currentTrick = '';
+        }
+    }
+}
+
+// ============================================
+// 9. УПРАВЛЕНИЕ И ФИЗИКА
+// ============================================
+let gameStarted = false;
+let grounded = true;
+let velocityY = 0;
+let moveX = 0, moveZ = 0;
+let cameraYaw = 0, cameraPitch = 0.4;
+let targetYaw = 0, targetPitch = 0.4;
+const GRAVITY = 25;
+const JUMP_FORCE = 9;
+const WALK_SPEED = 5.5;
+const SKATE_SPEED = 12.0;
+const PLAYER_RADIUS = 0.4;
+const PLAYER_HEIGHT = 2.0;
+const keys = {};
+let isSkating = false;
+let walkTime = 0;
+
+function isColliding(px, py, pz) {
+    for (let i = 0; i < colliders.length; i++) {
+        const col = colliders[i];
+        if (col.type === 'box') {
+            const box = col.getBox();
+            if (px + PLAYER_RADIUS > box.min.x && px - PLAYER_RADIUS < box.max.x &&
+                pz + PLAYER_RADIUS > box.min.z && pz - PLAYER_RADIUS < box.max.z) {
+                if (py + PLAYER_HEIGHT > box.min.y && py < box.max.y) return true;
+            }
+        } else if (col.type === 'cylinder') {
+            const pos = col.getPosition();
+            const dx = px - pos.x, dz = pz - pos.z;
+            const distSq = dx*dx + dz*dz;
+            const radius = col.radius + PLAYER_RADIUS;
+            if (distSq < radius * radius) {
+                const top = pos.y + col.height / 2, bottom = pos.y - col.height / 2;
+                if (py + PLAYER_HEIGHT > bottom && py < top) return true;
+            }
+        } else if (col.type === 'sphere') {
+            const pos = col.getPosition();
+            const dx = px - pos.x, dz = pz - pos.z;
+            const distSq = dx*dx + dz*dz;
+            const radius = col.radius + PLAYER_RADIUS;
+            if (distSq < radius * radius) {
+                const top = pos.y + col.radius, bottom = pos.y - col.radius;
+                if (py + PLAYER_HEIGHT > bottom && py < top) return true;
+            }
+        }
+    }
+    return false;
+}
+
+function getGroundY(px, py, pz) {
+    let groundY = 0;
+    let onGround = false;
+    
+    if (Math.abs(px) < 20 && Math.abs(pz) < 20) {
+        groundY = 0.5;
+        onGround = true;
+    }
+    
+    for (let i = 0; i < colliders.length; i++) {
+        const col = colliders[i];
+        if (col.type === 'box') {
+            const box = col.getBox();
+            if (px + PLAYER_RADIUS > box.min.x && px - PLAYER_RADIUS < box.max.x &&
+                pz + PLAYER_RADIUS > box.min.z && pz - PLAYER_RADIUS < box.max.z) {
+                if (py <= box.max.y && py > box.max.y - 1.0) {
+                    groundY = Math.max(groundY, box.max.y);
+                    onGround = true;
+                }
+            }
+        } else if (col.type === 'sphere') {
+            const pos = col.getPosition();
+            const dx = px - pos.x, dz = pz - pos.z;
+            const distSq = dx*dx + dz*dz;
+            if (distSq < (col.radius + 0.1) * (col.radius + 0.1)) {
+                const top = pos.y + col.radius;
+                if (py <= top && py > top - 2.0) {
+                    groundY = Math.max(groundY, top);
+                    onGround = true;
+                }
+            }
+        }
+    }
+    
+    return { groundY, onGround };
+}
+
+function updatePhysics(delta) {
+    if (!gameStarted) return;
+    
+    let x = moveX; let z = moveZ;
+    if (keys['w']) z = -1;
+    if (keys['s']) z = 1;
+    if (keys['a']) x = -1;
+    if (keys['d']) x = 1;
+    
+    const len = Math.sqrt(x*x + z*z);
+    if (len > 1) { x /= len; z /= len; }
+    
+    const moving = Math.abs(x) > 0.05 || Math.abs(z) > 0.05;
+    const currentSpeed = isSkating ? SKATE_SPEED : WALK_SPEED;
+    
+    if (moving && !isPerformingTrick) {
+        const forward = new THREE.Vector3(-Math.sin(cameraYaw), 0, -Math.cos(cameraYaw));
+        const right = new THREE.Vector3(Math.cos(cameraYaw), 0, -Math.sin(cameraYaw));
+        const dir = new THREE.Vector3().addScaledVector(forward, -z).addScaledVector(right, x);
+        if (dir.length() > 0.1) {
+            dir.normalize();
+            player.position.x += dir.x * currentSpeed * delta;
+            if (isColliding(player.position.x, player.position.y, player.position.z)) {
+                player.position.x -= dir.x * currentSpeed * delta;
+            }
+            player.position.z += dir.z * currentSpeed * delta;
+            if (isColliding(player.position.x, player.position.y, player.position.z)) {
+                player.position.z -= dir.z * currentSpeed * delta;
+            }
+            const targetRot = Math.atan2(dir.x, dir.z);
+            player.rotation.y = THREE.MathUtils.lerp(player.rotation.y, targetRot, delta * 12);
+        }
+    }
+    
+    velocityY -= GRAVITY * delta;
+    player.position.y += velocityY * delta;
+    
+    const groundInfo = getGroundY(player.position.x, player.position.y, player.position.z);
+    if (velocityY <= 0 && player.position.y <= groundInfo.groundY && groundInfo.onGround) {
+        player.position.y = groundInfo.groundY;
+        velocityY = 0;
+        grounded = true;
+    } else if (player.position.y <= 0) {
+        player.position.y = 0;
+        velocityY = 0;
+        grounded = true;
+    } else {
+        grounded = false;
+    }
+}
+
+function jump() {
+    if (gameStarted && grounded && !isPerformingTrick) {
+        velocityY = JUMP_FORCE;
+        grounded = false;
+    }
+}
+
+function toggleSkateboard() {
+    if (!gameStarted) return;
+    isSkating = !isSkating;
+    skateboard.visible = isSkating;
+    const skateBtn = document.getElementById('skateBtn');
+    if (isSkating) {
+        skateBtn.classList.add('active');
+        trickTimer = 0;
+        nextTrickTime = 20 + Math.random() * 20;
+    } else {
+        skateBtn.classList.remove('active');
+    }
+}
+
+function animateCharacter(delta) {
+    if (!gameStarted) return;
+    const moving = Math.abs(moveX) > 0.05 || Math.abs(moveZ) > 0.05 || keys['w'] || keys['s'] || keys['a'] || keys['d'];
+    
+    if (isSkating) {
+        head.position.y = 5.4;
+        eyeGroup.position.y = 5.55;
+        legs[0].position.set(-0.5, 2.55, 0.5);
+        legs[1].position.set(0.5, 2.55, -0.5);
+        legs[0].rotation.y = -0.6;
+        legs[1].rotation.y = 0.6;
+        torso.rotation.y = -0.5;
+        torso.rotation.z = 0.05;
+        torso.position.y = 3.5;
+        head.rotation.y = 0;
+        leftEye.position.set(-0.5, 0.1, 0.8);
+        rightEye.position.set(0.5, 0.1, 0.8);
+        arms[1].position.set(1.5, 3.8, -0.5);
+        arms[1].rotation.x = 0.8;
+        arms[1].rotation.z = -0.3;
+        arms[1].rotation.y = 0.5;
+        arms[0].position.set(-1.5, 3.8, 0.5);
+        arms[0].rotation.x = -0.8;
+        arms[0].rotation.z = 0.3;
+        arms[0].rotation.y = -0.5;
+    } else {
+        head.position.y = 5.2;
+        eyeGroup.position.y = 5.35;
+        head.rotation.y = 0;
+        torso.rotation.y = 0;
+        torso.rotation.z = 0;
+        legs[0].position.set(-0.65, 2.2, 0);
+        legs[1].position.set(0.65, 2.2, 0);
+        legs[0].rotation.y = 0;
+        legs[1].rotation.y = 0;
+        arms[0].position.set(-1.6, 4.0, 0);
+        arms[1].position.set(1.6, 4.0, 0);
+        leftEye.position.set(-0.5, 0.1, 0.8);
+        rightEye.position.set(0.5, 0.1, 0.8);
+        
+        if (moving && grounded && !isPerformingTrick) {
+            walkTime += delta * 10;
+            const swing = Math.sin(walkTime) * 0.5;
+            for (let i = 0; i < arms.length; i++) {
+                const side = i === 0 ? -1 : 1;
+                arms[i].rotation.x = swing * side;
+            }
+            for (let i = 0; i < legs.length; i++) {
+                const side = i === 0 ? -1 : 1;
+                legs[i].rotation.x = -swing * side;
+            }
+            torso.position.y = 3.2 + Math.abs(Math.sin(walkTime * 2)) * 0.05;
+        } else {
+            for (const arm of arms) {
+                arm.rotation.x = THREE.MathUtils.lerp(arm.rotation.x, 0, delta * 8);
+            }
+            for (const leg of legs) {
+                leg.rotation.x = THREE.MathUtils.lerp(leg.rotation.x, 0, delta * 8);
+            }
+            torso.position.y = THREE.MathUtils.lerp(torso.position.y, 3.2, delta * 8);
+        }
+    }
+}
+
+function updateCamera(delta) {
+    const smooth = 1 - Math.pow(0.002, delta);
+    cameraYaw = THREE.MathUtils.lerp(cameraYaw, targetYaw, smooth);
+    cameraPitch = THREE.MathUtils.lerp(cameraPitch, targetPitch, smooth);
+    const dist = isSkating ? 9.0 : 7.5;
+    const target = new THREE.Vector3(player.position.x, player.position.y + 2.5, player.position.z);
+    const offset = new THREE.Vector3(
+        Math.sin(cameraYaw) * dist * Math.cos(cameraPitch),
+        3.5 + Math.sin(cameraPitch) * dist,
+        Math.cos(cameraYaw) * dist * Math.cos(cameraPitch)
+    );
+    const desired = target.clone().add(offset);
+    const follow = 1 - Math.pow(0.0005, delta);
+    camera.position.lerp(desired, follow);
+    camera.lookAt(target);
+}
+
+// ============================================
+// 10. ИНТЕРФЕЙС
+// ============================================
+const joystick = document.getElementById('joystick');
+const stick = document.getElementById('stick');
+let joystickActive = false;
+let joyPointerId = null;
+let joyCenterX = 0, joyCenterY = 0;
+const MAX_RADIUS = 42;
+const joystickArea = document.getElementById('joystickArea');
+
+joystickArea.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    joyCenterX = e.clientX;
+    joyCenterY = e.clientY;
+    joystick.style.left = joyCenterX + 'px';
+    joystick.style.top = joyCenterY + 'px';
+    joystick.classList.add('active');
+    joystickActive = true;
+    joyPointerId = e.pointerId;
+    e.target.setPointerCapture(e.pointerId);
+    updateJoystick(e.clientX, e.clientY);
+});
+
+document.addEventListener('pointermove', (e) => {
+    if (!joystickActive || e.pointerId !== joyPointerId) return;
+    updateJoystick(e.clientX, e.clientY);
+});
+
+document.addEventListener('pointerup', (e) => {
+    if (e.pointerId !== joyPointerId) return;
+    joystickActive = false;
+    joyPointerId = null;
+    joystick.classList.remove('active');
+    stick.style.transform = 'translate3d(0,0,0)';
+    moveX = 0;
+    moveZ = 0;
+});
+
+function updateJoystick(clientX, clientY) {
+    let dx = clientX - joyCenterX;
+    let dy = clientY - joyCenterY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist > MAX_RADIUS) {
+        dx = dx / dist * MAX_RADIUS;
+        dy = dy / dist * MAX_RADIUS;
+    }
+    stick.style.transform = `translate3d(${dx}px,${dy}px,0)`;
+    moveX = dx / MAX_RADIUS;
+    moveZ = dy / MAX_RADIUS;
+}
+
+let cameraActive = false;
+let camPointerId = null;
+let lastCamX = 0, lastCamY = 0;
+
+document.addEventListener('pointerdown', (e) => {
+    if (e.clientX > window.innerWidth * 0.5 && !e.target.closest('#skateBtn') && !e.target.closest('#jumpBtn')) {
+        cameraActive = true;
+        camPointerId = e.pointerId;
+        lastCamX = e.clientX;
+        lastCamY = e.clientY;
+        e.target.setPointerCapture(e.pointerId);
+    }
+});
+
+document.addEventListener('pointermove', (e) => {
+    if (!cameraActive || e.pointerId !== camPointerId) return;
+    const dx = e.clientX - lastCamX;
+    const dy = e.clientY - lastCamY;
+    targetYaw -= dx * 0.005;
+    targetPitch += dy * 0.005;
+    targetPitch = THREE.MathUtils.clamp(targetPitch, -0.3, 1.2);
+    lastCamX = e.clientX;
+    lastCamY = e.clientY;
+});
+
+document.addEventListener('pointerup', (e) => {
+    if (e.pointerId !== camPointerId) return;
+    cameraActive = false;
+    camPointerId = null;
+});
+
+document.getElementById('jumpBtn').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    jump();
+});
+
+document.getElementById('skateBtn').addEventListener('click', toggleSkateboard);
+
+document.addEventListener('keydown', (e) => {
+    const key = e.key.toLowerCase();
+    keys[key] = true;
+    if (key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        jump();
+    }
+    if (key === 'q') toggleSkateboard();
+});
+
+document.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+// ============================================
+// 11. ЗАПУСК
+// ============================================
+document.getElementById('startButton').addEventListener('click', async () => {
+    try {
+        if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+        }
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape');
+        }
+    } catch (e) {}
+    gameStarted = true;
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('loading').classList.add('hidden');
+    updateScoreDisplay();
+});
+
+function resize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', resize);
+
+let lastTime = performance.now();
+
+function animate() {
+    requestAnimationFrame(animate);
+    const now = performance.now();
+    let delta = (now - lastTime) / 1000;
+    lastTime = now;
+    delta = Math.min(delta, 0.05);
+    
+    updatePhysics(delta);
+    updateTrickSystem(delta);
+    animateCharacter(delta);
+    updateCamera(delta);
+    
+    renderer.render(scene, camera);
+}
+
+document.getElementById('loading').classList.add('hidden');
+animate();
+
+console.log('🚶 3D WALK — Система очков и трюков!');
+</script>
+</body>
+</html>
