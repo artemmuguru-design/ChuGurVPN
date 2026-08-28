@@ -167,7 +167,6 @@
         const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.9 });
         const lampHeadMat = new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0xffdd88, emissiveIntensity: 0, roughness: 0.3 });
 
-        // Материалы для детской площадки
         const playRedMat = new THREE.MeshStandardMaterial({color: 0xE74C3C, roughness: 0.5});
         const playYellowMat = new THREE.MeshStandardMaterial({color: 0xF1C40F, roughness: 0.5});
         const playBlueMat = new THREE.MeshStandardMaterial({color: 0x3498DB, roughness: 0.5});
@@ -175,6 +174,7 @@
         const playMetalMat = new THREE.MeshStandardMaterial({color: 0xBDC3C7, roughness: 0.3, metalness: 0.7});
         const playSandMat = new THREE.MeshStandardMaterial({color: 0xE8C872, roughness: 0.95});
         const playWoodMat = new THREE.MeshStandardMaterial({color: 0xA0522D, roughness: 0.7});
+        const fenceMat = new THREE.MeshStandardMaterial({color: 0xFF8C42, roughness: 0.6});
 
         const colliders = [];
         function addBoxCollider(mesh) { colliders.push({ type: 'box', mesh: mesh, getBox: () => new THREE.Box3().setFromObject(mesh) }); }
@@ -398,7 +398,6 @@
             }
         }
 
-        // === ИСПРАВЛЕНИЕ #3: система проверки, чтобы дома не стояли друг в друге ===
         const placedBuildings = [];
         function isSpaceFree(x, z, w, d, rotY) {
             const cos = Math.abs(Math.cos(rotY)), sin = Math.abs(Math.sin(rotY));
@@ -417,8 +416,8 @@
             const cos = Math.abs(Math.cos(rotY)), sin = Math.abs(Math.sin(rotY));
             placedBuildings.push({ x, z, hx: (w*cos + d*sin)/2, hz: (w*sin + d*cos)/2 });
         }
-        // Резервируем место под детскую площадку (дома туда не ставятся)
-        placedBuildings.push({ x: 90, z: 20, hx: 16, hz: 14 });
+        // === ИСПРАВЛЕНИЕ: резервируем место под площадку в точке (130, 0) ===
+        placedBuildings.push({ x: 130, z: 0, hx: 20, hz: 17 });
 
         function addRoad(x, z, w, d, rotY = 0) {
             const road = new THREE.Mesh(new THREE.BoxGeometry(w, 0.1, d), roadMat);
@@ -437,35 +436,28 @@
             scene.add(s);
         }
 
-        // === ИСПРАВЛЕНИЕ #1: ПРЯМЫЕ дороги во всех направлениях (сетка) ===
-        // Главные прямые улицы (удлинённые)
         addRoad(0, -70, 340, 12);
         addRoad(0, 70, 340, 12);
         addRoad(-70, 0, 12, 340);
         addRoad(70, 0, 12, 340);
-        // Дальние прямые улицы (сетка) — лево/право/верх/низ
         addRoad(-110, 0, 12, 340);
         addRoad(110, 0, 12, 340);
         addRoad(0, -110, 340, 12);
         addRoad(0, 110, 340, 12);
-        // Диагональные прямые дороги
         addRoad(95, 95, 10, 80, Math.PI/4);
         addRoad(-95, 95, 10, 80, -Math.PI/4);
         addRoad(95, -95, 10, 80, -Math.PI/4);
         addRoad(-95, -95, 10, 80, Math.PI/4);
-        // Кольцевая
         for (let i = 0; i < 24; i++) {
             const a = (i / 24) * Math.PI * 2;
             addRoad(Math.cos(a)*100, Math.sin(a)*100, 12, 28, -a);
         }
-        // Повороты и тупик
         addRoad(-100, -35, 60, 10);
         addRoad(-100, -35, 10, 70, 0);
         addRoad(100, 35, 60, 10);
         addRoad(100, 35, 10, 70, 0);
         addRoad(35, -100, 10, 40);
 
-        // Тротуары
         addSidewalk(0, -80, 220, 6);
         addSidewalk(0, -60, 220, 6);
         addSidewalk(0, 80, 220, 6);
@@ -475,7 +467,6 @@
         addSidewalk(80, 0, 6, 220);
         addSidewalk(60, 0, 6, 220);
 
-        // ЗДАНИЯ ВДОЛЬ ГЛАВНЫХ УЛИЦ (с проверкой наложения)
         for (let x = -95; x <= 95; x += 28) {
             if (Math.abs(x) < 18) continue;
             if (Math.abs(Math.abs(x) - 70) < 14) continue;
@@ -505,7 +496,6 @@
             if (Math.abs(Math.cos(a)) > 0.8 || Math.abs(Math.sin(a)) > 0.8) continue;
             tryPlaceBuilding(Math.cos(a)*115, Math.sin(a)*115, 14, 12, -a + Math.PI);
         }
-        // Дома вдоль диагоналей
         for (let q = 0; q < 4; q++) {
             const baseAngle = Math.PI/4 + q * Math.PI/2;
             for (let i = 0; i < 3; i++) {
@@ -518,12 +508,10 @@
                 }
             }
         }
-        // Дома вдоль внешнего кольца
         for (let i = 0; i < 16; i++) {
             const a = (i / 16) * Math.PI * 2 + Math.PI/16;
             tryPlaceBuilding(Math.cos(a)*170, Math.sin(a)*170, 14, 12, -a + Math.PI);
         }
-        // Дополнительные дома между направлениями
         for (let i = 0; i < 12; i++) {
             const a = (i / 12) * Math.PI * 2 + Math.PI/12;
             const nearCardinal = Math.abs(Math.cos(a)) > 0.85 || Math.abs(Math.sin(a)) > 0.85;
@@ -531,7 +519,6 @@
             if (nearCardinal || nearDiag) continue;
             tryPlaceBuilding(Math.cos(a)*120, Math.sin(a)*120, 13, 12, -a + Math.PI);
         }
-        // Дома вдоль дальних прямых улиц
         for (let t = -140; t <= 140; t += 40) {
             if (Math.abs(t) < 20) continue;
             tryPlaceBuilding(t, -125, 13, 12, 0);
@@ -540,7 +527,6 @@
             tryPlaceBuilding(125, t, 12, 13, -Math.PI/2);
         }
 
-        // Создание InstancedMesh для зданий и окон
         createInstanced(unitBox, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }), bBodies, bColors, true);
         createInstanced(unitBox, new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.9 }), bParapets, null, true);
         createInstanced(unitBox, new THREE.MeshStandardMaterial({ color: 0x3d2817, roughness: 0.6 }), bDoors);
@@ -551,8 +537,77 @@
         litWindowsInst = createInstanced(windowGeo, new THREE.MeshStandardMaterial({ color: 0xffffaa, emissive: 0xffaa00, emissiveIntensity: 0.6, roughness: 0.1 }), winLitM);
         if (litWindowsInst) litWindowsInst.visible = false;
 
-        // === ИСПРАВЛЕНИЕ #2: ДЕТСКАЯ ПЛОЩАДКА ===
+        // ============================================
+        // ДЕТСКАЯ ПЛОЩАДКА НА СПЕЦИАЛЬНОМ МЕСТЕ (130, 0)
+        // Всё стоит на земле, огорожено забором
+        // ============================================
         let spinningCarousel = null;
+        const PGX = 130, PGZ = 0;
+
+        function createPlaygroundBase() {
+            // Цветное покрытие на уровне земли
+            const pad = new THREE.Mesh(new THREE.BoxGeometry(28, 0.08, 24), new THREE.MeshStandardMaterial({color: 0x7FB3D5, roughness: 0.9}));
+            pad.position.set(PGX, 0.04, PGZ);
+            pad.receiveShadow = true;
+            scene.add(pad);
+            // Дорожка-вход к площадке
+            const path = new THREE.Mesh(new THREE.BoxGeometry(4, 0.06, 8), new THREE.MeshStandardMaterial({color: 0xC0C0C0, roughness: 0.9}));
+            path.position.set(PGX, 0.03, PGZ + 16);
+            path.receiveShadow = true;
+            scene.add(path);
+            // Забор по периметру (с проёмом спереди для входа)
+            const fh = 1.0;
+            const back = new THREE.Mesh(new THREE.BoxGeometry(28, fh, 0.2), fenceMat);
+            back.position.set(PGX, fh/2, PGZ - 12);
+            back.castShadow = true;
+            scene.add(back);
+            addStaticBox(PGX-14, 0, PGZ-12.1, PGX+14, fh, PGZ-11.9);
+            const left = new THREE.Mesh(new THREE.BoxGeometry(0.2, fh, 24), fenceMat);
+            left.position.set(PGX - 14, fh/2, PGZ);
+            left.castShadow = true;
+            scene.add(left);
+            addStaticBox(PGX-14.1, 0, PGZ-12, PGX-13.9, fh, PGZ+12);
+            const right = new THREE.Mesh(new THREE.BoxGeometry(0.2, fh, 24), fenceMat);
+            right.position.set(PGX + 14, fh/2, PGZ);
+            right.castShadow = true;
+            scene.add(right);
+            addStaticBox(PGX+13.9, 0, PGZ-12, PGX+14.1, fh, PGZ+12);
+            const front1 = new THREE.Mesh(new THREE.BoxGeometry(10, fh, 0.2), fenceMat);
+            front1.position.set(PGX - 9, fh/2, PGZ + 12);
+            front1.castShadow = true;
+            scene.add(front1);
+            addStaticBox(PGX-14, 0, PGZ+11.9, PGX-4, fh, PGZ+12.1);
+            const front2 = new THREE.Mesh(new THREE.BoxGeometry(10, fh, 0.2), fenceMat);
+            front2.position.set(PGX + 9, fh/2, PGZ + 12);
+            front2.castShadow = true;
+            scene.add(front2);
+            addStaticBox(PGX+4, 0, PGZ+11.9, PGX+14, fh, PGZ+12.1);
+            // Угловые столбики забора
+            for (let sx of [-14, 14]) for (let sz of [-12, 12]) {
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, fh + 0.3, 8), playYellowMat);
+                post.position.set(PGX + sx, (fh + 0.3)/2, PGZ + sz);
+                post.castShadow = true;
+                scene.add(post);
+            }
+            // Фонарь на площадке
+            const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 3, 8), metalMat);
+            lampPole.position.set(PGX - 12, 1.5, PGZ - 10);
+            lampPole.castShadow = true;
+            scene.add(lampPole);
+            const lampHead = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 10), new THREE.MeshStandardMaterial({color: 0xffffaa, emissive: 0xffffaa, emissiveIntensity: 0.6}));
+            lampHead.position.set(PGX - 12, 3.1, PGZ - 10);
+            scene.add(lampHead);
+            // Скамейка для родителей
+            const benchSeat = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.12, 0.6), woodMat);
+            benchSeat.position.set(PGX + 12, 0.5, PGZ - 10);
+            benchSeat.castShadow = true;
+            scene.add(benchSeat);
+            const benchBack = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.6, 0.1), woodMat);
+            benchBack.position.set(PGX + 12, 0.9, PGZ - 10.3);
+            scene.add(benchBack);
+            addStaticBox(PGX+10.8, 0, PGZ-10.4, PGX+13.2, 0.6, PGZ-9.6);
+        }
+
         function createSandbox(cx, cz) {
             const sand = new THREE.Mesh(new THREE.BoxGeometry(6, 0.25, 6), playSandMat);
             sand.position.set(cx, 0.125, cz);
@@ -575,7 +630,7 @@
         }
         function createPlaySlide(cx, cz) {
             const g = new THREE.Group();
-            g.position.set(cx, cz);
+            g.position.set(cx, 0, cz);
             const h = 1.6;
             const plat = new THREE.Mesh(new THREE.BoxGeometry(2, 0.15, 2), playWoodMat);
             plat.position.y = h;
@@ -611,7 +666,7 @@
         }
         function createSwings(cx, cz) {
             const g = new THREE.Group();
-            g.position.set(cx, cz);
+            g.position.set(cx, 0, cz);
             const topH = 2.2, barLen = 4;
             const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, barLen, 8), playMetalMat);
             bar.rotation.z = Math.PI/2;
@@ -640,7 +695,7 @@
         }
         function createMonkeyBars(cx, cz) {
             const g = new THREE.Group();
-            g.position.set(cx, cz);
+            g.position.set(cx, 0, cz);
             const h = 2.0, len = 4;
             for (let ex of [-1,1]) for (let sz of [-1,1]) {
                 const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, h, 8), playGreenMat);
@@ -667,7 +722,7 @@
         }
         function createCarousel(cx, cz) {
             const g = new THREE.Group();
-            g.position.set(cx, cz);
+            g.position.set(cx, 0, cz);
             const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.5, 8), playMetalMat);
             base.position.y = 0.25;
             g.add(base);
@@ -687,18 +742,14 @@
             addStaticCylinder(cx, cz, 1.5, 0.6);
             return spin;
         }
-        function createPlayground(cx, cz) {
-            const pad = new THREE.Mesh(new THREE.BoxGeometry(26, 0.1, 22), new THREE.MeshStandardMaterial({color: 0x7FB3D5, roughness: 0.9}));
-            pad.position.set(cx, 0.05, cz);
-            pad.receiveShadow = true;
-            scene.add(pad);
-            createSandbox(cx-8, cz-4);
-            createPlaySlide(cx, cz+5);
-            createSwings(cx+8, cz-4);
-            createMonkeyBars(cx, cz-10);
-            spinningCarousel = createCarousel(cx+8, cz+6);
-        }
-        createPlayground(90, 20);
+
+        // Собираем площадку на земле в точке (130, 0)
+        createPlaygroundBase();
+        createSandbox(PGX - 8, PGZ - 4);
+        createPlaySlide(PGX, PGZ + 5);
+        createSwings(PGX + 8, PGZ - 4);
+        createMonkeyBars(PGX, PGZ - 10);
+        spinningCarousel = createCarousel(PGX + 8, PGZ + 6);
 
         // ФОНАРИ
         const lampPoleM = [], lampHeadM = [];
@@ -1583,8 +1634,8 @@
             const drZ = (-15 - focus.z) * scale + 60;
             miniCtx.fillStyle = '#2ecc71';
             miniCtx.beginPath(); miniCtx.arc(drX, drZ, 3, 0, Math.PI*2); miniCtx.fill();
-            const pgX = (90 - focus.x) * scale + 60;
-            const pgZ = (20 - focus.z) * scale + 60;
+            const pgX = (PGX - focus.x) * scale + 60;
+            const pgZ = (PGZ - focus.z) * scale + 60;
             miniCtx.fillStyle = '#7FB3D5';
             miniCtx.beginPath(); miniCtx.arc(pgX, pgZ, 4, 0, Math.PI*2); miniCtx.fill();
             miniCtx.fillStyle = '#ff0000';
@@ -1766,6 +1817,7 @@
         const GRAVITY = 25, JUMP_FORCE = 9, WALK_SPEED = 5.5, SKATE_SPEED = 12.0, PLAYER_RADIUS = 0.4, PLAYER_HEIGHT = 2.0;
         const keys = {};
         let isSkating = false, walkTime = 0;
+        let droneUpPressed = false, droneDownPressed = false;
 
         function isColliding(px, py, pz) {
             for (let i = 0; i < colliders.length; i++) {
@@ -1978,7 +2030,6 @@
             droneMoveX = dx / MAX_RADIUS; droneMoveZ = dy / MAX_RADIUS;
         }
 
-        let droneUpPressed = false, droneDownPressed = false;
         droneUpBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); droneUpPressed = true; });
         droneUpBtn.addEventListener('pointerup', () => droneUpPressed = false);
         droneUpBtn.addEventListener('pointerleave', () => droneUpPressed = false);
@@ -2144,4 +2195,4 @@
         console.log('🚶 3D WALK — Скейт-парк с городом готов!');
     </script>
 </body>
-            </html>
+    </html>
