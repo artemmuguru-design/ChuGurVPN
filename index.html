@@ -10,46 +10,37 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-  body{
-    background:#0f1626;color:#e8eefb;
-    font-family:'Rubik',system-ui,sans-serif;font-size:15px;
-    -webkit-user-select:none;user-select:none;
-  }
+  body{background:#0f1626;color:#e8eefb;font-family:'Rubik',system-ui,sans-serif;font-size:15px;
+    -webkit-user-select:none;user-select:none}
   #scene{position:fixed;inset:0;z-index:0}
   #scene canvas{display:block;touch-action:none;cursor:grab}
-
   #vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
     background:
       radial-gradient(60% 40% at 50% 0%, rgba(90,170,255,.09), transparent 70%),
-      radial-gradient(120% 95% at 50% 42%, transparent 55%, rgba(5,9,18,.62) 100%);
-  }
+      radial-gradient(120% 95% at 50% 42%, transparent 55%, rgba(5,9,18,.62) 100%)}
 
-  /* ── верхняя панель ─────────────────────────────── */
-  #bar{position:fixed;top:14px;left:14px;right:14px;z-index:20;
-    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-    padding:10px 16px;border:1px solid #26324e;border-radius:16px;
-    background:rgba(15,21,36,.92);box-shadow:0 12px 40px rgba(0,0,0,.45);
-  }
+  #bar{position:fixed;top:14px;left:14px;right:14px;z-index:20;display:flex;align-items:center;gap:10px;
+    flex-wrap:wrap;padding:10px 16px;border:1px solid #26324e;border-radius:16px;
+    background:rgba(15,21,36,.92);box-shadow:0 12px 40px rgba(0,0,0,.45)}
   .brand{display:flex;align-items:center;gap:11px;margin-right:6px}
   .brand svg{width:30px;height:30px;filter:drop-shadow(0 3px 8px rgba(255,164,52,.35))}
   .brand-name{font-family:'Russo One',sans-serif;font-size:19px;letter-spacing:2px;color:#ffd08a}
   .brand-sub{display:block;font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;color:#7d90b4}
   .grow{flex:1}
-  .chip{padding:7px 13px;border:1px solid #2b3a5e;border-radius:999px;
-    background:#141d31;color:#8ea3c4;font-size:13px;white-space:nowrap}
+  .chip{padding:7px 13px;border:1px solid #2b3a5e;border-radius:999px;background:#141d31;color:#8ea3c4;
+    font-size:13px;white-space:nowrap}
   .chip b{color:#ffd08a;font-weight:600}
 
-  .btn{display:inline-flex;align-items:center;gap:8px;
-    font:600 14px 'Rubik',sans-serif;padding:10px 16px;border-radius:11px;
-    border:1px solid transparent;cursor:pointer;touch-action:manipulation;
-    transition:transform .18s, box-shadow .18s, background .18s, border-color .18s;
-  }
+  .btn{display:inline-flex;align-items:center;gap:8px;font:600 14px 'Rubik',sans-serif;padding:10px 16px;
+    border-radius:11px;border:1px solid transparent;cursor:pointer;touch-action:manipulation;
+    transition:transform .18s, box-shadow .18s, background .18s, border-color .18s}
   .btn svg{width:17px;height:17px;flex:none}
   .btn:hover{transform:translateY(-2px)}
   .btn:active{transform:translateY(0) scale(.97)}
   .btn:focus-visible{outline:2px solid #ffd08a;outline-offset:2px}
-  .btn-create{background:linear-gradient(160deg,#ffc25e,#ff9a2b);color:#2a1703;
-    box-shadow:0 6px 20px rgba(255,158,46,.35)}
+  .btn-menu{background:#161d2e;color:#ffd08a;border-color:#2c3a58;padding:10px}
+  .btn-menu:hover{background:#1d2740}
+  .btn-create{background:linear-gradient(160deg,#ffc25e,#ff9a2b);color:#2a1703;box-shadow:0 6px 20px rgba(255,158,46,.35)}
   .btn-create:hover{box-shadow:0 10px 26px rgba(255,158,46,.5)}
   .btn-color{background:#1c1a30;color:#d9c8ff;border-color:#3d3468}
   .btn-color:hover{background:#272244}
@@ -57,109 +48,152 @@
   .btn-copy:hover{background:#183238}
   .btn-del{background:#251620;color:#ff8d9d;border-color:#57293a;padding:10px}
   .btn-del:hover{background:#341c2a}
-  .btn-color.active{border-color:#ffb454;
-    box-shadow:0 0 0 2px rgba(255,180,84,.35), 0 6px 18px rgba(255,158,46,.25)}
-  .btn-copy.active{border-color:#38e0c6;
-    box-shadow:0 0 0 2px rgba(56,224,198,.35), 0 6px 18px rgba(56,224,198,.22)}
-  .btn-del.active{border-color:#ff4d5e;
-    box-shadow:0 0 0 2px rgba(255,77,94,.4), 0 6px 18px rgba(255,77,94,.25)}
-  #colorDot{width:13px;height:13px;border-radius:50%;background:#ffb454;
-    border:1.5px solid rgba(255,255,255,.45);flex:none}
+  .btn-repo{background:#1d2a1d;color:#9fe89f;border-color:#3a5a3a}
+  .btn-repo:hover{background:#253725}
   .btn-save{background:#152440;color:#7fdcff;border-color:#2b4a6e}
   .btn-save:hover{background:#1b2f52;box-shadow:0 8px 22px rgba(80,190,255,.22)}
   .btn-full{background:#161d2e;color:#c7d3ea;border-color:#2c3a58}
   .btn-full:hover{background:#1d2740}
+  .btn-color.active{border-color:#ffb454;box-shadow:0 0 0 2px rgba(255,180,84,.35), 0 6px 18px rgba(255,158,46,.25)}
+  .btn-copy.active{border-color:#38e0c6;box-shadow:0 0 0 2px rgba(56,224,198,.35), 0 6px 18px rgba(56,224,198,.22)}
+  .btn-del.active{border-color:#ff4d5e;box-shadow:0 0 0 2px rgba(255,77,94,.4), 0 6px 18px rgba(255,77,94,.25)}
+  #colorDot{width:13px;height:13px;border-radius:50%;background:#ffb454;border:1.5px solid rgba(255,255,255,.45);flex:none}
   #btnFull .i-exit{display:none}
   body.fs #btnFull .i-enter{display:none}
   body.fs #btnFull .i-exit{display:block}
 
-  /* ── палитра цветов ─────────────────────────────── */
-  #palette{position:fixed;top:84px;right:14px;z-index:30;width:302px;
-    background:#131b2e;border:1px solid #2c3c60;border-radius:14px;padding:16px;
-    box-shadow:0 20px 50px rgba(0,0,0,.5);
+  #menuBack{position:fixed;inset:0;background:rgba(4,8,16,.5);z-index:39;opacity:0;visibility:hidden;transition:.25s}
+  #menuBack.open{opacity:1;visibility:visible}
+  #menu{position:fixed;top:0;left:0;bottom:0;width:min(320px,86vw);z-index:40;background:#121a2b;
+    border-right:1px solid #2c3c60;box-shadow:20px 0 60px rgba(0,0,0,.5);transform:translateX(-105%);
+    transition:transform .28s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;padding:16px}
+  #menu.open{transform:none}
+  .menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .menu-head span{font-family:'Russo One',sans-serif;font-size:17px;color:#ffe0b0;letter-spacing:1px}
+  .menu-actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .menu-actions button{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    font:600 13px 'Rubik',sans-serif;padding:10px 8px;border-radius:10px;cursor:pointer;
+    border:1px solid transparent;transition:.18s}
+  .ma-new{background:#1d2a1d;color:#9fe89f;border-color:#3a5a3a}
+  .ma-new:hover{background:#253725}
+  .ma-as{background:#152440;color:#7fdcff;border-color:#2b4a6e}
+  .ma-as:hover{background:#1b2f52}
+  .ma-im{background:#241d30;color:#d9c8ff;border-color:#3d3468}
+  .ma-im:hover{background:#2d2540}
+  #repoList{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+  .repo-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#1a2440;
+    border:1px solid #2b3a5e;border-radius:10px;padding:10px 12px}
+  .repo-name{font-size:14px;color:#dfe8fa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .repo-btns{display:flex;gap:6px}
+  .repo-btn{padding:6px 10px;border-radius:8px;cursor:pointer;font:600 12px 'Rubik',sans-serif;border:1px solid transparent;transition:.15s}
+  .repo-btn.load{background:#152440;color:#7fdcff;border-color:#2b4a6e}
+  .repo-btn.load:hover{background:#1b2f52}
+  .repo-btn.del{background:#251620;color:#ff8d9d;border-color:#57293a;min-width:34px}
+  .repo-btn.del.arm{background:#57293a;color:#fff;border-color:#ff4d5e}
+  .repo-empty{color:#8ea3c4;font-size:13px;text-align:center;padding:24px 8px;line-height:1.5}
+
+  .modal-back{position:absolute;inset:0;background:rgba(4,8,16,.68);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
+  #nameModal,#exportModal{position:fixed;inset:0;z-index:55;display:grid;place-items:center;visibility:hidden;transition:visibility 0s .25s}
+  #nameModal.open,#exportModal.open{visibility:visible;transition:none}
+  #nameModal.open .modal-back,#exportModal.open .modal-back{opacity:1}
+  #nameModal .modal-card,#exportModal .modal-card{position:relative;width:min(400px,92vw);background:linear-gradient(180deg,#182136,#121a2b);
+    border:1px solid #2c3c60;border-radius:18px;padding:26px 24px;box-shadow:0 30px 80px rgba(0,0,0,.55);
+    transform:translateY(16px) scale(.95);opacity:0;transition:.28s cubic-bezier(.2,.9,.3,1.2)}
+  #nameModal.open .modal-card,#exportModal.open .modal-card{transform:none;opacity:1}
+  #nameModal h2,#exportModal h2{font-family:'Russo One',sans-serif;font-size:19px;color:#ffe0b0;margin-bottom:8px}
+  #repoNameInput{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #33456e;background:#0f1626;
+    color:#eaf1ff;font:500 15px 'Rubik',sans-serif;outline:none;margin:10px 0 16px}
+  #repoNameInput:focus{border-color:#ffb454}
+  .name-row{display:flex;gap:10px}
+  .name-row .btn{flex:1;justify-content:center}
+  .export-grid{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+  .exp-opt{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;
+    background:#1a2440;border:1px solid #2b3a5e;border-radius:12px;padding:13px 15px;cursor:pointer;
+    color:#dfe8fa;font-family:'Rubik',sans-serif;transition:.18s}
+  .exp-opt:hover{transform:translateY(-3px);border-color:#ffb454;box-shadow:0 12px 26px rgba(0,0,0,.4)}
+  .exp-opt b{font-size:15px;color:#ffd08a}
+  .exp-opt small{color:#8ea3c4;font-size:12px}
+
+  #palette{position:fixed;top:84px;right:14px;z-index:30;width:302px;background:#131b2e;border:1px solid #2c3c60;
+    border-radius:14px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.5);
     opacity:0;visibility:hidden;transform:translateY(-10px) scale(.97);transition:.22s}
   #palette.open{opacity:1;visibility:visible;transform:none}
-  .pal-head{display:flex;justify-content:space-between;align-items:center;
-    font-family:'Russo One',sans-serif;font-size:14px;color:#ffe0b0;margin-bottom:13px}
-  .pal-x{width:28px;height:28px;border-radius:8px;background:#202c48;border:1px solid #33456e;
-    color:#9fb2d6;font-size:13px;cursor:pointer;transition:.15s}
+  .pal-head{display:flex;justify-content:space-between;align-items:center;font-family:'Russo One',sans-serif;
+    font-size:14px;color:#ffe0b0;margin-bottom:13px}
+  .pal-x{width:28px;height:28px;border-radius:8px;background:#202c48;border:1px solid #33456e;color:#9fb2d6;font-size:13px;cursor:pointer;transition:.15s}
   .pal-x:hover{background:#3d2030;color:#ff9aa8}
   .swatches{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-  .sw{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;padding:0;
-    border:2px solid rgba(255,255,255,.14);transition:transform .15s, border-color .15s, box-shadow .15s}
+  .sw{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;padding:0;border:2px solid rgba(255,255,255,.14);
+    transition:transform .15s, border-color .15s, box-shadow .15s}
   .sw:hover{transform:scale(1.18);border-color:rgba(255,255,255,.75)}
   .sw.sel{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.28)}
-  .custom-row{display:flex;align-items:center;justify-content:space-between;
-    margin-top:14px;color:#8ea3c4;font-size:13.5px}
+  .custom-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;color:#8ea3c4;font-size:13.5px}
   .custom-row input{width:60px;height:30px;border:none;background:none;cursor:pointer;padding:0}
 
-  /* ── приветствие ────────────────────────────────── */
-  #welcome{position:fixed;left:50%;top:57%;transform:translate(-50%,-50%);z-index:5;
-    pointer-events:none;text-align:center;transition:opacity .6s;
-    animation:floaty 3.6s ease-in-out infinite}
+  #welcome{position:fixed;left:50%;top:57%;transform:translate(-50%,-50%);z-index:5;pointer-events:none;
+    text-align:center;transition:opacity .6s;animation:floaty 3.6s ease-in-out infinite}
   #welcome.hide{opacity:0}
   #welcome .w-pill{display:inline-block;padding:13px 24px;border:1px solid #33456e;border-radius:14px;
-    background:rgba(16,23,40,.85);color:#d9e4f8;font-size:15px;
-    box-shadow:0 16px 44px rgba(0,0,0,.45)}
+    background:rgba(16,23,40,.85);color:#d9e4f8;font-size:15px;box-shadow:0 16px 44px rgba(0,0,0,.45)}
   #welcome b{color:#ffd08a}
   @keyframes floaty{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,-58%)}}
 
-  /* ── модальное окно выбора фигуры ───────────────── */
-  #modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;
-    visibility:hidden;transition:visibility 0s .28s}
+  #modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;visibility:hidden;transition:visibility 0s .28s}
   #modal.open{visibility:visible;transition:none}
-  .modal-back{position:absolute;inset:0;background:rgba(4,8,16,.68);backdrop-filter:blur(4px);
-    opacity:0;transition:opacity .25s}
   #modal.open .modal-back{opacity:1}
-  .modal-card{position:relative;width:min(600px,92vw);
-    background:linear-gradient(180deg,#182136,#121a2b);
-    border:1px solid #2c3c60;border-radius:18px;padding:30px 28px 26px;
-    box-shadow:0 30px 80px rgba(0,0,0,.55);
-    transform:translateY(18px) scale(.94);opacity:0;
-    transition:.3s cubic-bezier(.2,.9,.3,1.2)}
+  .modal-card{position:relative;width:min(640px,92vw);background:linear-gradient(180deg,#182136,#121a2b);
+    border:1px solid #2c3c60;border-radius:18px;padding:30px 28px 26px;box-shadow:0 30px 80px rgba(0,0,0,.55);
+    transform:translateY(18px) scale(.94);opacity:0;transition:.3s cubic-bezier(.2,.9,.3,1.2)}
   #modal.open .modal-card{transform:none;opacity:1}
   .modal-card h2{font-family:'Russo One',sans-serif;font-size:23px;letter-spacing:.5px;color:#ffe0b0}
   .modal-sub{margin-top:6px;color:#8ea3c4;font-size:13.5px}
-  .modal-x{position:absolute;top:13px;right:13px;width:34px;height:34px;border-radius:9px;
-    background:#202c48;border:1px solid #33456e;color:#9fb2d6;font-size:15px;cursor:pointer;
-    transition:.15s}
+  .modal-x{position:absolute;top:13px;right:13px;width:34px;height:34px;border-radius:9px;background:#202c48;
+    border:1px solid #33456e;color:#9fb2d6;font-size:15px;cursor:pointer;transition:.15s}
   .modal-x:hover{background:#3d2030;border-color:#7e3a4e;color:#ff9aa8;transform:rotate(90deg)}
   .shapes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
-  .shape-card{display:flex;flex-direction:column;align-items:center;gap:12px;
-    padding:24px 10px 18px;background:#1a2440;border:1px solid #2b3a5e;border-radius:14px;
-    color:#dfe8fa;cursor:pointer;font-family:'Rubik',sans-serif;
+  .shape-card{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 10px 18px;background:#1a2440;
+    border:1px solid #2b3a5e;border-radius:14px;color:#dfe8fa;cursor:pointer;font-family:'Rubik',sans-serif;
     transition:transform .2s, border-color .2s, box-shadow .2s}
-  .shape-card:hover{transform:translateY(-5px);border-color:var(--acc);
-    box-shadow:0 16px 32px rgba(0,0,0,.45)}
+  .shape-card:hover{transform:translateY(-5px);border-color:var(--acc);box-shadow:0 16px 32px rgba(0,0,0,.45)}
   .shape-card:active{transform:translateY(-1px) scale(.98)}
   .shape-card[data-shape="cube"]{--acc:#ffb454}
   .shape-card[data-shape="sphere"]{--acc:#4fd2ff}
   .shape-card[data-shape="cone"]{--acc:#ff6f61}
+  .shape-card[data-shape="prism"]{--acc:#f458c4}
+  .shape-card[data-shape="cyl"]{--acc:#a44dff}
+  .shape-card[data-shape="glass"]{--acc:#9adde8}
+  .shape-card[data-shape="wind"]{--acc:#bfeef0}
   .shape-ico{transition:transform .25s}
   .shape-card:hover .shape-ico{transform:scale(1.14) rotate(-5deg)}
-  .ico-sq{width:46px;height:46px;border-radius:9px;
-    background:linear-gradient(145deg,#ffc76b,#ff9a2b);box-shadow:0 8px 20px rgba(255,164,52,.4)}
-  .ico-ci{width:46px;height:46px;border-radius:50%;
-    background:linear-gradient(145deg,#8fe3ff,#26a9e0);box-shadow:0 8px 20px rgba(79,210,255,.35)}
+  .ico-sq{width:46px;height:46px;border-radius:9px;background:linear-gradient(145deg,#ffc76b,#ff9a2b);box-shadow:0 8px 20px rgba(255,164,52,.4)}
+  .ico-ci{width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#8fe3ff,#26a9e0);box-shadow:0 8px 20px rgba(79,210,255,.35)}
   .ico-tr{width:52px;height:46px;background:linear-gradient(160deg,#ff9384,#f04a38);
     clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 8px 14px rgba(255,111,97,.4))}
+  .ico-pr{width:52px;height:46px;background:linear-gradient(160deg,#ff9ade,#f458c4);
+    clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 8px 14px rgba(244,88,196,.4))}
+  .ico-cy{width:44px;height:48px;background:linear-gradient(90deg,#7a2fe0,#b06cff 55%,#8a2be2);
+    border-radius:50%/16px;box-shadow:0 8px 20px rgba(164,77,255,.4)}
+  .ico-gl{width:44px;height:48px;border-radius:5px;border:2px solid rgba(170,225,235,.9);
+    background:linear-gradient(160deg,rgba(200,240,246,.55),rgba(140,210,222,.28));
+    box-shadow:0 8px 20px rgba(150,220,230,.25), inset 0 0 12px rgba(255,255,255,.35)}
+  .ico-ws{width:56px;height:42px;background:linear-gradient(180deg,rgba(205,242,246,.6),rgba(150,215,225,.3));
+    clip-path:polygon(14% 0,86% 0,100% 100%,0 100%);
+    filter:drop-shadow(0 8px 14px rgba(150,220,230,.35))}
   .shape-card b{font-size:15px;font-weight:600}
   .shape-card small{color:#8ea3c4;font-size:12px;margin-top:-6px}
 
-  /* ── тост ───────────────────────────────────────── */
-  #toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,14px);z-index:60;
-    background:#101a2e;border:1px solid #3a4d78;border-left:3px solid #ffb454;
-    color:#eaf1ff;padding:11px 20px;border-radius:10px;font-size:14px;
-    opacity:0;pointer-events:none;transition:.3s;box-shadow:0 12px 30px rgba(0,0,0,.4)}
+  #toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,14px);z-index:60;background:#101a2e;
+    border:1px solid #3a4d78;border-left:3px solid #ffb454;color:#eaf1ff;padding:11px 20px;border-radius:10px;
+    font-size:14px;opacity:0;pointer-events:none;transition:.3s;box-shadow:0 12px 30px rgba(0,0,0,.4)}
   #toast.show{opacity:1;transform:translate(-50%,0)}
 
   @media (max-width:720px){
     .brand-sub{display:none}
     .btn{padding:9px 12px;font-size:13px}
     .btn .btn-label{display:none}
-    .btn-del{padding:9px}
+    .btn-del,.btn-menu{padding:9px}
     .chip{display:none}
-    .shapes{gap:10px}
+    .shapes{gap:10px;grid-template-columns:repeat(2,1fr)}
     .modal-card{padding:24px 18px 20px}
     #palette{left:14px;right:14px;width:auto;top:auto;bottom:14px}
   }
@@ -171,6 +205,9 @@
 <div id="vignette"></div>
 
 <header id="bar">
+  <button class="btn btn-menu" id="btnMenu" title="Репозитории">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
   <div class="brand">
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 2 21 7 12 12 3 7Z" fill="#ffc25e"/>
@@ -180,6 +217,7 @@
     <div><span class="brand-name">ГРАНЬ</span><span class="brand-sub">3D-мастерская</span></div>
   </div>
   <div class="grow"></div>
+  <div class="chip">Репозиторий: <b id="repoLabel">—</b></div>
   <div class="chip">Фигур: <b id="count">0</b></div>
 
   <button class="btn btn-create" id="btnCreate" title="Создать начальную модель">
@@ -202,9 +240,14 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.8A.8.8 0 0 1 9.8 4h4.4a.8.8 0 0 1 .8.8V7"/><path d="M6.5 7l1 12.2a1 1 0 0 0 1 .8h7a1 1 0 0 0 1-.8L17.5 7"/><path d="M10 11v5M14 11v5"/></svg>
   </button>
 
-  <button class="btn btn-save" id="btnSave" title="Сохранить сцену в JSON-файл">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/></svg>
+  <button class="btn btn-repo" id="btnRepoSave" title="Сохранить в репозиторий">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
     <span class="btn-label">Сохранить</span>
+  </button>
+
+  <button class="btn btn-save" id="btnDownload" title="Скачать файл">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/></svg>
+    <span class="btn-label">Скачать</span>
   </button>
 
   <button class="btn btn-full" id="btnFull" title="Во весь экран">
@@ -213,6 +256,45 @@
     <span class="btn-label">Fullscreen</span>
   </button>
 </header>
+
+<div id="menuBack"></div>
+<div id="menu">
+  <div class="menu-head">
+    <span>Репозитории</span>
+    <button class="pal-x" id="menuClose" aria-label="Закрыть">✕</button>
+  </div>
+  <div class="menu-actions">
+    <button class="ma-new" id="btnNewScene">+ Новая сцена</button>
+    <button class="ma-as" id="btnSaveAs">Как копию</button>
+    <button class="ma-im" id="btnImport">Импорт JSON</button>
+  </div>
+  <div id="repoList"></div>
+</div>
+
+<div id="nameModal">
+  <div class="modal-back" data-nameclose></div>
+  <div class="modal-card">
+    <h2 id="nameModalTitle">Название репозитория</h2>
+    <input id="repoNameInput" type="text" placeholder="Введите название…" maxlength="40" autocomplete="off">
+    <div class="name-row">
+      <button class="btn btn-create" id="nameOk">Сохранить</button>
+      <button class="btn btn-full" data-nameclose>Отмена</button>
+    </div>
+  </div>
+</div>
+
+<div id="exportModal">
+  <div class="modal-back" data-exclose></div>
+  <div class="modal-card">
+    <h2>Скачать сцену</h2>
+    <p class="modal-sub">Выберите формат файла</p>
+    <div class="export-grid">
+      <button class="exp-opt" id="expGlb"><b>.GLB</b><small>3D-файл: просмотрщики, Blender, Windows 3D Viewer</small></button>
+      <button class="exp-opt" id="expHtml"><b>.HTML</b><small>Точный просмотр в браузере — как в редакторе</small></button>
+      <button class="exp-opt" id="expJson"><b>.JSON</b><small>Для ИИ и обратного импорта в меню ☰</small></button>
+    </div>
+  </div>
+</div>
 
 <div id="welcome">
   <div class="w-pill">Нажмите <b>«Создать модель»</b> сверху,<br>чтобы добавить первую фигуру</div>
@@ -229,7 +311,7 @@
   <div class="modal-card">
     <button class="modal-x" data-close aria-label="Закрыть">✕</button>
     <h2>Новая модель</h2>
-    <p class="modal-sub">Выберите форму — она появится в центре сцены</p>
+    <p class="modal-sub">Выберите форму — она появится рядом с другими</p>
     <div class="shapes">
       <button class="shape-card" data-shape="cube">
         <span class="shape-ico ico-sq"></span><b>Квадрат</b><small>→ куб</small>
@@ -239,6 +321,18 @@
       </button>
       <button class="shape-card" data-shape="cone">
         <span class="shape-ico ico-tr"></span><b>Треугольник</b><small>→ конус</small>
+      </button>
+      <button class="shape-card" data-shape="prism">
+        <span class="shape-ico ico-pr"></span><b>Треугольник</b><small>→ призма</small>
+      </button>
+      <button class="shape-card" data-shape="cyl">
+        <span class="shape-ico ico-cy"></span><b>Цилиндр</b><small>→ цилиндр</small>
+      </button>
+      <button class="shape-card" data-shape="glass">
+        <span class="shape-ico ico-gl"></span><b>Стекло</b><small>→ панель</small>
+      </button>
+      <button class="shape-card" data-shape="wind">
+        <span class="shape-ico ico-ws"></span><b>Лобовое</b><small>→ стекло</small>
       </button>
     </div>
   </div>
@@ -258,8 +352,8 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
-/* ═══ автозапуск полного экрана при первом действии ═══ */
 function autoFullscreen(){
   window.removeEventListener('pointerdown', autoFullscreen, true);
   if(!document.fullscreenElement && document.documentElement.requestFullscreen){
@@ -268,7 +362,6 @@ function autoFullscreen(){
 }
 window.addEventListener('pointerdown', autoFullscreen, true);
 
-/* ═══ базовая сцена ═══ */
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
@@ -297,7 +390,6 @@ controls.autoRotate = true;
 controls.autoRotateSpeed = .9;
 let targetGoal = controls.target.clone();
 
-/* ═══ свет и окружение ═══ */
 scene.add(new THREE.HemisphereLight(0xbcd4ff, 0x1a2030, .85));
 const key = new THREE.DirectionalLight(0xffe0b8, 1.7);
 key.position.set(7, 12, 6);
@@ -316,10 +408,7 @@ grid.material.transparent = true;
 grid.material.opacity = .85;
 scene.add(grid);
 
-const shadowPlane = new THREE.Mesh(
-  new THREE.CircleGeometry(28, 48),
-  new THREE.ShadowMaterial({ opacity:.38 })
-);
+const shadowPlane = new THREE.Mesh(new THREE.CircleGeometry(28, 48), new THREE.ShadowMaterial({ opacity:.38 }));
 shadowPlane.rotation.x = -Math.PI/2;
 shadowPlane.position.y = .005;
 shadowPlane.receiveShadow = true;
@@ -332,45 +421,98 @@ grad.addColorStop(0,'rgba(96,150,255,.22)');
 grad.addColorStop(.55,'rgba(96,150,255,.07)');
 grad.addColorStop(1,'rgba(96,150,255,0)');
 gx.fillStyle = grad; gx.fillRect(0,0,512,512);
-const glow = new THREE.Mesh(
-  new THREE.PlaneGeometry(58,58),
-  new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(gc), transparent:true, depthWrite:false })
-);
+const glow = new THREE.Mesh(new THREE.PlaneGeometry(58,58),
+  new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(gc), transparent:true, depthWrite:false }));
 glow.rotation.x = -Math.PI/2;
 glow.position.y = -.03;
 glow.renderOrder = -1;
 scene.add(glow);
 
-/* ═══ фигуры ═══ */
+/* ═══ геометрии, в т.ч. НОВЫЕ: стекло и лобовое ═══ */
+function triGeo(){
+  const s = new THREE.Shape();
+  s.moveTo(-1.5, -1);
+  s.lineTo( 1.5, -1);
+  s.lineTo(-0.5,  1);
+  s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth:1.6, bevelEnabled:false });
+  g.translate(0, 0, -0.8);
+  return g;
+}
+function windshieldGeo(){
+  const s = new THREE.Shape();
+  s.moveTo(-1.6, -1.1);
+  s.quadraticCurveTo(0, -1.35, 1.6, -1.1);
+  s.lineTo(1.15, 1.0);
+  s.quadraticCurveTo(0, 1.2, -1.15, 1.0);
+  s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth:.1, bevelEnabled:false, curveSegments:24 });
+  g.translate(0, 0, -.05);
+  const p = g.attributes.position;
+  for(let i = 0; i < p.count; i++){
+    const x = p.getX(i);
+    p.setZ(i, p.getZ(i) + x * x * .18);   // лёгкий изгиб, как у настоящего лобового
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
+const GLASS_MAT = { transparent:true, opacity:.28, roughness:.06, metalness:.05, depthWrite:false, side:THREE.DoubleSide };
+
 const SHAPES = {
-  cube:   { label:'Куб',   color:0xffb454, y:1,    geo:()=>new THREE.BoxGeometry(2,2,2) },
-  sphere: { label:'Сфера', color:0x4fd2ff, y:1.25, geo:()=>new THREE.SphereGeometry(1.25,48,32) },
-  cone:   { label:'Конус', color:0xff6f61, y:1.25, geo:()=>new THREE.ConeGeometry(1.35,2.5,48) },
+  cube:   { label:'Куб',     color:0xffb454, y:1,    geo:()=>new THREE.BoxGeometry(2,2,2) },
+  sphere: { label:'Сфера',   color:0x4fd2ff, y:1.25, geo:()=>new THREE.SphereGeometry(1.25,48,32) },
+  cone:   { label:'Конус',   color:0xff6f61, y:1.25, geo:()=>new THREE.ConeGeometry(1.35,2.5,48) },
+  prism:  { label:'Призма',  color:0xf458c4, y:1,    geo:triGeo },
+  cyl:    { label:'Цилиндр', color:0xa44dff, y:1.1,  geo:()=>new THREE.CylinderGeometry(1.15,1.15,2.2,48) },
+  glass:  { label:'Стекло',  color:0xcfeef2, y:1.3,  geo:()=>new THREE.BoxGeometry(2.4,2.6,.12),
+            matOpts:GLASS_MAT, castShadow:false },
+  wind:   { label:'Лобовое', color:0xd8f4f4, y:1.23, geo:windshieldGeo,
+            matOpts:GLASS_MAT, castShadow:false },
 };
+// точная высота установки, чтобы низ был на земле
+['glass','wind','prism'].forEach(k => {
+  const g = SHAPES[k].geo();
+  g.computeBoundingBox();
+  SHAPES[k].y = -g.boundingBox.min.y;
+});
+
 let models = [], spawnCount = 0, selected = null, gizmoTipShown = false;
 
-function spawn(type, position, scale, color){
+function spawn(type, position, scale, color, rotation){
   const def = SHAPES[type];
   if(!def) return;
-  const mesh = new THREE.Mesh(
-    def.geo(),
-    new THREE.MeshStandardMaterial({
-      color: color !== undefined ? color : def.color,
-      roughness:.4, metalness:.18,
-      emissive: color !== undefined ? color : def.color,
-      emissiveIntensity:0
-    })
-  );
+  const c = color !== undefined ? color : def.color;
+  const mat = new THREE.MeshStandardMaterial(Object.assign({
+    color:c, roughness:.4, metalness:.18, emissive:c, emissiveIntensity:0
+  }, def.matOpts || {}));
+  const mesh = new THREE.Mesh(def.geo(), mat);
   mesh.geometry.computeBoundingBox();
   const bb = mesh.geometry.boundingBox;
   mesh.userData.baseHalf = {
     x:(bb.max.x-bb.min.x)/2, y:(bb.max.y-bb.min.y)/2, z:(bb.max.z-bb.min.z)/2
   };
   mesh.userData.shape = type;
-  if(position) mesh.position.fromArray(position);
-  else mesh.position.set(spawnCount === 0 ? 0 : spawnCount * 2.7, def.y, 0);
+  if(position){
+    mesh.position.fromArray(position);
+  } else if(models.length){
+    const last = models[models.length-1];
+    const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
+    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0,1,0)).normalize();
+    const r = Math.max(last.userData.baseHalf.x*last.scale.x, last.userData.baseHalf.z*last.scale.z);
+    mesh.position.copy(last.position).addScaledVector(right, r*2 + 1.2);
+    mesh.position.y = def.y;
+  } else {
+    mesh.position.set(0, def.y, 0);
+  }
   if(scale) mesh.scale.fromArray(scale);
-  mesh.castShadow = mesh.receiveShadow = true;
+  if(rotation){
+    mesh.quaternion.fromArray(rotation);
+    if(mesh.quaternion.lengthSq() < 1e-8) mesh.quaternion.set(0,0,0,1);
+    mesh.quaternion.normalize();
+  }
+  mesh.castShadow = def.castShadow !== false;
+  mesh.receiveShadow = def.castShadow !== false;
   scene.add(mesh);
   models.push(mesh);
   spawnCount++;
@@ -385,7 +527,9 @@ function duplicateMesh(src){
   m.userData.shape = src.userData.shape;
   m.userData.baseHalf = src.userData.baseHalf;
   m.scale.copy(src.scale);
-  m.castShadow = m.receiveShadow = true;
+  m.quaternion.copy(src.quaternion);
+  m.castShadow = src.castShadow;
+  m.receiveShadow = src.receiveShadow;
   const fwd = new THREE.Vector3();
   camera.getWorldDirection(fwd);
   const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0,1,0)).normalize();
@@ -400,7 +544,6 @@ function duplicateMesh(src){
   targetGoal.copy(m.position);
 }
 
-/* ═══ гизмо: 6 стрелок размера + 6 стрелок переноса ═══ */
 const gizmo = new THREE.Group();
 gizmo.visible = false;
 scene.add(gizmo);
@@ -432,6 +575,17 @@ function makeMoveArrow(color){
   g.add(shaft, ball);
   return g;
 }
+function makeRotRing(color){
+  const g = new THREE.Group();
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1, .02, 10, 64), arrowMat(color));
+  ring.renderOrder = 998;
+  const hit = new THREE.Mesh(new THREE.TorusGeometry(1, .10, 8, 48),
+    new THREE.MeshBasicMaterial({ transparent:true, opacity:0, depthWrite:false, depthTest:false }));
+  hit.renderOrder = 997;
+  g.add(ring, hit);
+  g.userData.ringMat = ring.material;
+  return g;
+}
 
 const ARROW_DEFS = [
   { dir:new THREE.Vector3( 1,0,0), rot:[0,0,-Math.PI/2], axis:'x' },
@@ -443,6 +597,12 @@ const ARROW_DEFS = [
 ];
 const SCALE_COLOR = { x:0xff5c5c, y:0x54e389, z:0x4f8dff };
 const MOVE_COLOR  = { x:0xffb0b0, y:0xb2f7cd, z:0xb0ccff };
+const ROT_COLOR   = { x:0xff5c5c, y:0x54e389, z:0x4f8dff };
+const ROT_DEFS = [
+  { axis:'x', rot:[0, Math.PI/2, 0] },
+  { axis:'y', rot:[Math.PI/2, 0, 0] },
+  { axis:'z', rot:[0, 0, 0] },
+];
 
 const arrows = [];
 ARROW_DEFS.forEach(d => {
@@ -457,17 +617,40 @@ ARROW_DEFS.forEach(d => {
   gizmo.add(group);
   arrows.push({ group, dir:d.dir, axis:d.axis, kind:'move', dist:1 });
 });
+const rotHandles = [];
+ROT_DEFS.forEach(d => {
+  const group = makeRotRing(ROT_COLOR[d.axis]);
+  group.rotation.set(...d.rot);
+  gizmo.add(group);
+  rotHandles.push({ group, axis:d.axis, ringMat:group.userData.ringMat, baseColor:ROT_COLOR[d.axis] });
+});
 
 function layoutGizmo(){
   if(!selected) return;
   gizmo.position.copy(selected.position);
+  gizmo.quaternion.copy(selected.quaternion);
+  let maxHalf = 0;
   arrows.forEach(a => {
     const half = selected.userData.baseHalf[a.axis] * selected.scale[a.axis];
     a.dist = a.kind === 'scale' ? half + .18 : half + 1.72;
+    maxHalf = Math.max(maxHalf, half);
   });
+  const radius = maxHalf + .7;
+  rotHandles.forEach(h => h.group.scale.setScalar(radius));
 }
 
-/* ═══ режимы: покраска, копирование, удаление ═══ */
+function resolveGizmoHit(obj){
+  let o = obj;
+  while(o && o !== gizmo){
+    const arrow = arrows.find(a => a.group === o);
+    if(arrow) return { type:'arrow', arrow };
+    const rh = rotHandles.find(h => h.group === o);
+    if(rh) return { type:'rot', handle:rh };
+    o = o.parent;
+  }
+  return null;
+}
+
 let mode = null;
 const paintColor = new THREE.Color('#ffb454');
 const palette  = document.getElementById('palette');
@@ -547,11 +730,333 @@ btnDelete.addEventListener('click', () => {
   toast('Нажмите на предмет, чтобы удалить его');
 });
 
-/* ═══ выбор, растягивание, перенос, перемещение ═══ */
+const REPOS_KEY = 'gran_repos_v1';
+let currentRepoName = null;
+
+function readAllRepos(){
+  try { return JSON.parse(localStorage.getItem(REPOS_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function writeRepo(name, data){
+  try {
+    const all = readAllRepos();
+    all[name] = data;
+    localStorage.setItem(REPOS_KEY, JSON.stringify(all));
+    return true;
+  } catch(e){ toast('Не удалось сохранить (хранилище недоступно)'); return false; }
+}
+function deleteRepo(name){
+  const all = readAllRepos();
+  delete all[name];
+  try { localStorage.setItem(REPOS_KEY, JSON.stringify(all)); } catch(e){}
+  if(currentRepoName === name) currentRepoName = null;
+  updateRepoList(); updateRepoLabel();
+  toast('Репозиторий удалён');
+}
+function updateRepoLabel(){
+  document.getElementById('repoLabel').textContent = currentRepoName || '—';
+}
+function updateRepoList(){
+  const all = readAllRepos();
+  const names = Object.keys(all);
+  const list = document.getElementById('repoList');
+  list.innerHTML = '';
+  if(!names.length){
+    list.innerHTML = '<div class="repo-empty">Пока нет репозиториев.<br>Создайте объекты и нажмите «Сохранить».</div>';
+    return;
+  }
+  names.forEach(name => {
+    const row = document.createElement('div');
+    row.className = 'repo-row';
+    const nm = document.createElement('div');
+    nm.className = 'repo-name';
+    nm.textContent = (name === currentRepoName ? '● ' : '') + name;
+    const btns = document.createElement('div');
+    btns.className = 'repo-btns';
+    const load = document.createElement('button');
+    load.className = 'repo-btn load'; load.textContent = 'Загрузить';
+    load.onclick = () => loadRepo(name);
+    const del = document.createElement('button');
+    del.className = 'repo-btn del'; del.textContent = '✕';
+    del.onclick = () => {
+      if(del.dataset.confirm){ deleteRepo(name); }
+      else {
+        del.dataset.confirm = '1';
+        del.textContent = 'Точно?';
+        del.classList.add('arm');
+        setTimeout(() => {
+          if(del.isConnected){ delete del.dataset.confirm; del.textContent='✕'; del.classList.remove('arm'); }
+        }, 2000);
+      }
+    };
+    btns.appendChild(load); btns.appendChild(del);
+    row.appendChild(nm); row.appendChild(btns);
+    list.appendChild(row);
+  });
+}
+
+function round6(n){ return Math.round(n * 1000000) / 1000000; }
+function buildObjects(){
+  return models.map(m => {
+    const q = m.quaternion.clone().normalize();
+    return {
+      shape: m.userData.shape,
+      position: [round6(m.position.x), round6(m.position.y), round6(m.position.z)],
+      scale:    [round6(m.scale.x),    round6(m.scale.y),    round6(m.scale.z)],
+      rotation: [round6(q.x), round6(q.y), round6(q.z), round6(q.w)],
+      color:    '#' + m.material.color.getHexString()
+    };
+  });
+}
+function clearScene(){
+  [...models].forEach(m => destroyMesh(m));
+  spawnCount = 0;
+}
+function saveRepo(){
+  if(!models.length){ toast('Сначала создайте модель'); return; }
+  if(currentRepoName){
+    if(writeRepo(currentRepoName, {objects: buildObjects()})){
+      toast('Сохранено: ' + currentRepoName);
+      updateRepoList();
+    }
+  } else {
+    openNamePrompt('Название репозитория', name => {
+      currentRepoName = name;
+      if(writeRepo(name, {objects: buildObjects()})){
+        toast('Сохранено: ' + name);
+        updateRepoList(); updateRepoLabel();
+      } else { currentRepoName = null; }
+    });
+  }
+}
+function saveRepoAs(){
+  if(!models.length){ toast('Сначала создайте модель'); return; }
+  openNamePrompt('Новое название', name => {
+    currentRepoName = name;
+    if(writeRepo(name, {objects: buildObjects()})){
+      toast('Сохранено: ' + name);
+      updateRepoList(); updateRepoLabel();
+    } else { currentRepoName = null; }
+  });
+}
+function loadRepo(name){
+  const all = readAllRepos();
+  const data = all[name];
+  if(!data || !Array.isArray(data.objects)){ toast('Не удалось загрузить'); return; }
+  applySceneData(data);
+  currentRepoName = name;
+  updateRepoLabel();
+  closeMenu();
+  toast('Загружено: ' + name);
+}
+function newScene(){
+  clearScene();
+  currentRepoName = null;
+  updateRepoLabel(); updateRepoList();
+  closeMenu();
+  document.getElementById('welcome').classList.remove('hide');
+  toast('Новая сцена');
+}
+
+function isFin(v){ return Number.isFinite(v); }
+function applySceneData(data){
+  if(!data || !Array.isArray(data.objects)){ toast('Неверный формат файла'); return false; }
+  clearScene();
+  let n = 0;
+  data.objects.forEach(o => {
+    if(!o || !SHAPES[o.shape]) return;
+    const pos = Array.isArray(o.position) && o.position.every(isFin) ? o.position : null;
+    const scl = Array.isArray(o.scale) && o.scale.every(v => isFin(v) && v > 0) ? o.scale : null;
+    const rot = Array.isArray(o.rotation) && o.rotation.every(isFin) ? o.rotation : null;
+    spawn(o.shape, pos, scl, o.color, rot || [0,0,0,1]);
+    n++;
+  });
+  deselect();
+  return n > 0;
+}
+
+const menu = document.getElementById('menu');
+const menuBack = document.getElementById('menuBack');
+function openMenu(){ updateRepoList(); menu.classList.add('open'); menuBack.classList.add('open'); }
+function closeMenu(){ menu.classList.remove('open'); menuBack.classList.remove('open'); }
+document.getElementById('btnMenu').addEventListener('click', openMenu);
+document.getElementById('menuClose').addEventListener('click', closeMenu);
+menuBack.addEventListener('click', closeMenu);
+document.getElementById('btnNewScene').addEventListener('click', newScene);
+document.getElementById('btnSaveAs').addEventListener('click', () => { closeMenu(); saveRepoAs(); });
+document.getElementById('btnRepoSave').addEventListener('click', saveRepo);
+
+const fileInput = document.createElement('input');
+fileInput.type = 'file';
+fileInput.accept = '.json,application/json';
+fileInput.style.display = 'none';
+document.body.appendChild(fileInput);
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      if(applySceneData(JSON.parse(reader.result))){
+        currentRepoName = null; updateRepoLabel();
+        toast('Файл загружен');
+      }
+    }catch(err){ toast('Не удалось прочитать файл'); }
+  };
+  reader.readAsText(f);
+  fileInput.value = '';
+});
+document.getElementById('btnImport').addEventListener('click', () => { closeMenu(); fileInput.click(); });
+
+let nameCallback = null;
+const nameModal = document.getElementById('nameModal');
+function openNamePrompt(title, cb){
+  document.getElementById('nameModalTitle').textContent = title;
+  const inp = document.getElementById('repoNameInput');
+  inp.value = '';
+  nameCallback = cb;
+  nameModal.classList.add('open');
+  setTimeout(() => inp.focus(), 60);
+}
+function closeNamePrompt(){
+  nameModal.classList.remove('open');
+  nameCallback = null;
+}
+document.getElementById('nameOk').addEventListener('click', () => {
+  const name = document.getElementById('repoNameInput').value.trim();
+  if(!name){ toast('Введите название'); return; }
+  const cb = nameCallback;
+  closeNamePrompt();
+  if(cb) cb(name);
+});
+document.getElementById('repoNameInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('nameOk').click(); }
+});
+nameModal.querySelectorAll('[data-nameclose]').forEach(el => el.addEventListener('click', closeNamePrompt));
+
+const exportModal = document.getElementById('exportModal');
+function closeExport(){ exportModal.classList.remove('open'); }
+exportModal.querySelectorAll('[data-exclose]').forEach(el => el.addEventListener('click', closeExport));
+document.getElementById('btnDownload').addEventListener('click', () => {
+  if(!models.length){ toast('Сначала создайте модель'); return; }
+  exportModal.classList.add('open');
+});
+
+function saveBlob(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+
+function exportGLB(){
+  const exp = new THREE.Scene();
+  models.forEach(m => {
+    const c = m.clone();
+    c.material = m.material.clone();
+    c.material.emissiveIntensity = 0;
+    exp.add(c);
+  });
+  new GLTFExporter().parse(exp, res => {
+    saveBlob(new Blob([res], { type:'model/gltf-binary' }), 'gran-model.glb');
+    toast('Скачан gran-model.glb');
+  }, () => { toast('Не удалось экспортировать GLB'); }, { binary:true });
+}
+
+function exportJSON(){
+  const data = {
+    format: "gran-3d-scene/v3",
+    description: "Сцена 3D-мастерской ГРАНЬ. Отправь этот файл ИИ — он прочитает JSON и восстановит сцену через loadScene().",
+    savedAt: new Date().toISOString(),
+    objects: buildObjects()
+  };
+  saveBlob(new Blob([JSON.stringify(data, null, 2)], { type:'application/json' }), 'gran-scene.json');
+  toast('Скачан gran-scene.json');
+}
+
+function buildSnapshotHTML(data){
+  const json = JSON.stringify(data);
+  const CLOSE = '</' + 'script>';
+  return [
+    '<!DOCTYPE html>',
+    '<html><head><meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width,initial-scale=1">',
+    '<title>ГРАНЬ — просмотр модели</title>',
+    '<style>html,body{margin:0;height:100%;overflow:hidden;background:#0f1626}canvas{display:block}',
+    '#hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);color:#cdd9f2;font:12px Rubik,sans-serif;',
+    'background:rgba(13,18,32,.85);padding:7px 16px;border-radius:999px;white-space:nowrap}</style>',
+    '</head><body>',
+    '<div id="hint">Тяните — вращение · колесо/щипок — зум</div>',
+    '<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js">' + CLOSE,
+    '<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js">' + CLOSE,
+    '<script>',
+    '(function(){',
+    'var hint=document.getElementById("hint");',
+    'if(!window.THREE){hint.textContent="Не удалось загрузить 3D-движок — нужен интернет";return;}',
+    'var DATA=' + json + ';',
+    'var R=new THREE.WebGLRenderer({antialias:true});',
+    'R.setPixelRatio(Math.min(window.devicePixelRatio||1,2));',
+    'R.setSize(window.innerWidth,window.innerHeight);',
+    'R.shadowMap.enabled=true;R.outputEncoding=THREE.sRGBEncoding;',
+    'document.body.appendChild(R.domElement);',
+    'var S=new THREE.Scene();S.background=new THREE.Color(0x0f1626);',
+    'var C=new THREE.PerspectiveCamera(50,window.innerWidth/window.innerHeight,.1,500);',
+    'var O=new THREE.OrbitControls(C,R.domElement);O.enableDamping=true;',
+    'S.add(new THREE.HemisphereLight(0xbcd4ff,0x1a2030,.95));',
+    'var L=new THREE.DirectionalLight(0xffe0b8,1.2);L.position.set(6,10,5);S.add(L);',
+    'S.add(new THREE.GridHelper(60,60,0x3a4a6b,0x212c44));',
+    'var GEO={cube:function(){return new THREE.BoxGeometry(2,2,2)},',
+    'sphere:function(){return new THREE.SphereGeometry(1.25,48,32)},',
+    'cone:function(){return new THREE.ConeGeometry(1.35,2.5,48)},',
+    'cyl:function(){return new THREE.CylinderGeometry(1.15,1.15,2.2,48)},',
+    'glass:function(){return new THREE.BoxGeometry(2.4,2.6,.12)},',
+    'prism:function(){var s=new THREE.Shape();s.moveTo(-1.5,-1);s.lineTo(1.5,-1);s.lineTo(-0.5,1);s.closePath();',
+    'var g=new THREE.ExtrudeGeometry(s,{depth:1.6,bevelEnabled:false});g.translate(0,0,-0.8);return g;},',
+    'wind:function(){var s=new THREE.Shape();s.moveTo(-1.6,-1.1);s.quadraticCurveTo(0,-1.35,1.6,-1.1);',
+    's.lineTo(1.15,1.0);s.quadraticCurveTo(0,1.2,-1.15,1.0);s.closePath();',
+    'var g=new THREE.ExtrudeGeometry(s,{depth:.1,bevelEnabled:false,curveSegments:24});g.translate(0,0,-.05);',
+    'var p=g.attributes.position;for(var i=0;i<p.count;i++){p.setZ(i,p.getZ(i)+p.getX(i)*p.getX(i)*0.18);}',
+    'g.computeVertexNormals();return g;}};',
+    'var MOPT={glass:{transparent:true,opacity:.28,roughness:.06,metalness:.05,depthWrite:false,side:2},',
+    'wind:{transparent:true,opacity:.28,roughness:.06,metalness:.05,depthWrite:false,side:2}};',
+    'var box=new THREE.Box3();',
+    '(DATA.objects||[]).forEach(function(o){',
+    'var g=(GEO[o.shape]||GEO.cube)();',
+    'var mo=MOPT[o.shape]||{};',
+    'var mp={color:o.color||"#ffffff",roughness:.4,metalness:.15};',
+    'for(var k in mo)mp[k]=mo[k];',
+    'var m=new THREE.Mesh(g,new THREE.MeshStandardMaterial(mp));',
+    'if(o.position)m.position.fromArray(o.position);',
+    'if(o.scale)m.scale.fromArray(o.scale);',
+    'if(o.rotation){m.quaternion.fromArray(o.rotation);if(m.quaternion.lengthSq()<1e-8)m.quaternion.set(0,0,0,1);m.quaternion.normalize();}',
+    'm.castShadow=!mo.transparent;S.add(m);box.expandByObject(m);});',
+    'var c=box.getCenter(new THREE.Vector3());O.target.copy(c);',
+    'var sz=box.getSize(new THREE.Vector3()).length()||10;',
+    'C.position.copy(c).add(new THREE.Vector3(sz*.7,sz*.6,sz*.9));',
+    'R.setAnimationLoop(function(){O.update();R.render(S,C);});',
+    'window.addEventListener("resize",function(){',
+    'C.aspect=window.innerWidth/window.innerHeight;C.updateProjectionMatrix();',
+    'R.setSize(window.innerWidth,window.innerHeight);});',
+    '})();',
+    CLOSE,
+    '</body></html>'
+  ].join('\n');
+}
+function exportHTML(){
+  const data = { format:"gran-3d-scene/v3", objects: buildObjects() };
+  saveBlob(new Blob([buildSnapshotHTML(data)], { type:'text/html' }), 'gran-preview.html');
+  toast('Скачан gran-preview.html — откройте в браузере');
+}
+
+document.getElementById('expGlb').addEventListener('click', () => { closeExport(); exportGLB(); });
+document.getElementById('expHtml').addEventListener('click', () => { closeExport(); exportHTML(); });
+document.getElementById('expJson').addEventListener('click', () => { closeExport(); exportJSON(); });
+
 const raycaster = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
-let scaling = null, movingAxis = null, moving = null, downInfo = null;
-let hoverArrow = null, hoverModel = null;
+let scaling = null, movingAxis = null, rotating = null, moving = null, downInfo = null;
+let hoverArrow = null, hoverRot = null, hoverModel = null;
 const activePointers = new Set();
 
 function castAt(e){
@@ -568,7 +1073,7 @@ function select(mesh){
   layoutGizmo();
   if(!gizmoTipShown){
     gizmoTipShown = true;
-    toast('Стрелки с конусом — размер, с шариком — перенос по оси');
+    toast('Конусы — размер, шарики — перенос, кольца — вращение');
   }
 }
 function deselect(){
@@ -577,7 +1082,7 @@ function deselect(){
   gizmo.visible = false;
 }
 function cancelDrags(){
-  scaling = null; movingAxis = null; moving = null;
+  scaling = null; movingAxis = null; rotating = null; moving = null;
   controls.enabled = true;
   canvas.style.cursor = 'grab';
 }
@@ -597,34 +1102,49 @@ function axisPlane(dir, point){
   const normal = new THREE.Vector3().crossVectors(side, dir).normalize();
   return new THREE.Plane().setFromNormalAndCoplanarPoint(normal, point);
 }
+function localAxisVec(axis){
+  const v = new THREE.Vector3();
+  if(axis==='x') v.set(1,0,0); else if(axis==='y') v.set(0,1,0); else v.set(0,0,1);
+  return v;
+}
 
 function startScale(a){
-  controls.enabled = false;
-  hoverModel = null;
-  const plane = axisPlane(a.dir, selected.position);
+  controls.enabled = false; hoverModel = null;
+  const worldDir = a.dir.clone().applyQuaternion(selected.quaternion);
+  const plane = axisPlane(worldDir, selected.position);
   const start = new THREE.Vector3();
   if(!raycaster.ray.intersectPlane(plane, start)) start.copy(selected.position);
-  scaling = {
-    arrow:a, plane, start,
+  scaling = { arrow:a, worldDir, plane, start,
     startScale:selected.scale.clone(),
-    ref:selected.userData.baseHalf[a.axis] * selected.scale[a.axis]
-  };
-  canvas.style.cursor = (a.axis === 'x') ? 'ew-resize' : (a.axis === 'y') ? 'ns-resize' : 'move';
+    ref:selected.userData.baseHalf[a.axis] * selected.scale[a.axis] };
+  canvas.style.cursor = (a.axis==='x') ? 'ew-resize' : (a.axis==='y') ? 'ns-resize' : 'move';
 }
 
 function startMoveAxis(a){
-  controls.enabled = false;
-  hoverModel = null;
-  const plane = axisPlane(a.dir, selected.position);
+  controls.enabled = false; hoverModel = null;
+  const worldDir = a.dir.clone().applyQuaternion(selected.quaternion);
+  const plane = axisPlane(worldDir, selected.position);
   const start = new THREE.Vector3();
   if(!raycaster.ray.intersectPlane(plane, start)) start.copy(selected.position);
-  movingAxis = { arrow:a, plane, start, startPos:selected.position.clone() };
+  movingAxis = { arrow:a, worldDir, plane, start, startPos:selected.position.clone() };
   canvas.style.cursor = 'move';
 }
 
+function startRotate(handle, e){
+  controls.enabled = false; hoverModel = null;
+  const worldAxis = localAxisVec(handle.axis).applyQuaternion(selected.quaternion).normalize();
+  const center = selected.position.clone();
+  const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(worldAxis, center);
+  const p0 = new THREE.Vector3();
+  const ok = raycaster.ray.intersectPlane(plane, p0);
+  const v0 = ok ? p0.sub(center) : new THREE.Vector3();
+  rotating = { worldAxis, startQuat:selected.quaternion.clone(), plane, center,
+    prevV:v0, totalAngle:0, lastX:e.clientX, useScreen:(v0.length() < 1e-3) };
+  canvas.style.cursor = 'grabbing';
+}
+
 function startMove(){
-  controls.enabled = false;
-  hoverModel = null;
+  controls.enabled = false; hoverModel = null;
   const normal = new THREE.Vector3();
   camera.getWorldDirection(normal);
   const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, selected.position);
@@ -638,19 +1158,20 @@ window.addEventListener('pointerdown', e => {
   if(e.target !== canvas) return;
   activePointers.add(e.pointerId);
   controls.autoRotate = false;
-
   if(activePointers.size > 1){ cancelDrags(); downInfo = null; return; }
-
   castAt(e);
 
   if(gizmo.visible){
     const hit = raycaster.intersectObjects(gizmo.children, true)[0];
     if(hit){
-      const g = hit.object.parent;
-      const a = arrows.find(x => x.group === g);
-      if(a && selected){
-        if(a.kind === 'scale') startScale(a);
-        else startMoveAxis(a);
+      const res = resolveGizmoHit(hit.object);
+      if(res && selected){
+        if(res.type === 'arrow'){
+          if(res.arrow.kind === 'scale') startScale(res.arrow);
+          else startMoveAxis(res.arrow);
+        } else {
+          startRotate(res.handle, e);
+        }
       }
       e.preventDefault();
       return;
@@ -663,27 +1184,23 @@ window.addEventListener('pointerdown', e => {
       const m = hitModel.object;
       m.material.color.copy(paintColor);
       m.userData.flash = performance.now();
-      e.preventDefault();
-      return;
+      e.preventDefault(); return;
     }
     if(mode === 'copy'){
       duplicateMesh(hitModel.object);
       exitMode();
       toast('Копия создана');
-      e.preventDefault();
-      return;
+      e.preventDefault(); return;
     }
     if(mode === 'delete'){
       destroyMesh(hitModel.object);
       exitMode();
       toast('Фигура удалена');
-      e.preventDefault();
-      return;
+      e.preventDefault(); return;
     }
     select(hitModel.object);
     startMove();
-    e.preventDefault();
-    return;
+    e.preventDefault(); return;
   }
 
   downInfo = { x:e.clientX, y:e.clientY, t:performance.now(), id:e.pointerId };
@@ -694,7 +1211,7 @@ window.addEventListener('pointermove', e => {
     castAt(e);
     const p = new THREE.Vector3();
     if(raycaster.ray.intersectPlane(scaling.plane, p)){
-      const d = scaling.arrow.dir;
+      const d = scaling.worldDir;
       const delta = p.dot(d) - scaling.start.dot(d);
       let f = 1 + delta / scaling.ref;
       f = Math.max(.06, Math.min(14, f));
@@ -707,11 +1224,36 @@ window.addEventListener('pointermove', e => {
     castAt(e);
     const p = new THREE.Vector3();
     if(raycaster.ray.intersectPlane(movingAxis.plane, p)){
-      const d = movingAxis.arrow.dir;
+      const d = movingAxis.worldDir;
       const delta = p.dot(d) - movingAxis.start.dot(d);
       selected.position.copy(movingAxis.startPos).addScaledVector(d, delta);
       layoutGizmo();
     }
+    return;
+  }
+  if(rotating && selected){
+    castAt(e);
+    let applied = false;
+    const p = new THREE.Vector3();
+    if(!rotating.useScreen && raycaster.ray.intersectPlane(rotating.plane, p)){
+      const v1 = p.clone().sub(rotating.center);
+      if(v1.length() > 1e-4 && rotating.prevV.length() > 1e-4){
+        const cross = new THREE.Vector3().crossVectors(rotating.prevV, v1);
+        const dot = rotating.prevV.dot(v1);
+        const delta = Math.atan2(rotating.worldAxis.dot(cross), dot);
+        rotating.totalAngle += delta;
+        rotating.prevV.copy(v1);
+        applied = true;
+      }
+    }
+    if(!applied){
+      const dx = e.clientX - rotating.lastX;
+      rotating.totalAngle += dx * 0.02;
+    }
+    rotating.lastX = e.clientX;
+    const q = new THREE.Quaternion().setFromAxisAngle(rotating.worldAxis, rotating.totalAngle);
+    selected.quaternion.copy(q.multiply(rotating.startQuat));
+    layoutGizmo();
     return;
   }
   if(moving && selected){
@@ -725,16 +1267,24 @@ window.addEventListener('pointermove', e => {
   }
   if(e.target !== canvas) return;
   castAt(e);
-  const ah = gizmo.visible ? raycaster.intersectObjects(gizmo.children, true)[0] : null;
-  hoverArrow = ah ? arrows.find(a => a.group === ah.object.parent) : null;
-  arrows.forEach(a => a.group.scale.setScalar(a === hoverArrow ? 1.18 : 1));
+  const hit = gizmo.visible ? raycaster.intersectObjects(gizmo.children, true)[0] : null;
+  const desc = hit ? resolveGizmoHit(hit.object) : null;
+  arrows.forEach(a => a.group.scale.setScalar(
+    (desc && desc.type==='arrow' && desc.arrow===a) ? 1.18 : 1));
+  rotHandles.forEach(h => {
+    const hov = desc && desc.type==='rot' && desc.handle===h;
+    h.ringMat.color.setHex(hov ? 0xffffff : h.baseColor);
+  });
+  hoverArrow = (desc && desc.type==='arrow') ? desc.arrow : null;
+  hoverRot   = (desc && desc.type==='rot') ? desc.handle : null;
   hoverModel = raycaster.intersectObjects(models, false)[0]?.object || null;
   if(hoverArrow){
-    canvas.style.cursor = hoverArrow.kind === 'move' ? 'move'
-      : hoverArrow.axis === 'x' ? 'ew-resize'
-      : hoverArrow.axis === 'y' ? 'ns-resize' : 'move';
+    canvas.style.cursor = hoverArrow.kind==='move' ? 'move'
+      : hoverArrow.axis==='x' ? 'ew-resize' : hoverArrow.axis==='y' ? 'ns-resize' : 'move';
+  } else if(hoverRot){
+    canvas.style.cursor = 'grab';
   } else if(hoverModel && mode){
-    canvas.style.cursor = mode === 'paint' ? 'crosshair' : mode === 'copy' ? 'copy' : 'pointer';
+    canvas.style.cursor = mode==='paint' ? 'crosshair' : mode==='copy' ? 'copy' : 'pointer';
   } else if(hoverModel){
     canvas.style.cursor = 'move';
   } else {
@@ -744,18 +1294,21 @@ window.addEventListener('pointermove', e => {
 
 window.addEventListener('pointerup', e => {
   activePointers.delete(e.pointerId);
-  if(scaling){ scaling = null; controls.enabled = true; canvas.style.cursor = 'grab'; downInfo = null; return; }
+  if(scaling){ scaling = null; controls.enabled = true; canvas.style.cursor='grab'; downInfo=null; return; }
   if(movingAxis){
-    movingAxis = null; controls.enabled = true; canvas.style.cursor = 'grab';
+    movingAxis = null; controls.enabled = true; canvas.style.cursor='grab';
     if(selected) targetGoal.copy(selected.position);
-    downInfo = null;
-    return;
+    downInfo=null; return;
+  }
+  if(rotating){
+    rotating = null; controls.enabled = true; canvas.style.cursor='grab';
+    if(selected) targetGoal.copy(selected.position);
+    downInfo=null; return;
   }
   if(moving){
-    moving = null; controls.enabled = true; canvas.style.cursor = 'grab';
+    moving = null; controls.enabled = true; canvas.style.cursor='grab';
     if(selected) targetGoal.copy(selected.position);
-    downInfo = null;
-    return;
+    downInfo=null; return;
   }
   if(downInfo && e.pointerId === downInfo.id && e.target === canvas){
     const moved = Math.hypot(e.clientX - downInfo.x, e.clientY - downInfo.y);
@@ -773,7 +1326,10 @@ canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 window.addEventListener('keydown', e => {
   if(e.key === 'Escape'){
-    if(palette.classList.contains('open')) palette.classList.remove('open');
+    if(nameModal.classList.contains('open')) closeNamePrompt();
+    else if(exportModal.classList.contains('open')) closeExport();
+    else if(palette.classList.contains('open')) palette.classList.remove('open');
+    else if(menu.classList.contains('open')) closeMenu();
     else if(modal.classList.contains('open')) closeModal();
     else if(mode) exitMode();
     else deselect();
@@ -784,10 +1340,8 @@ window.addEventListener('keydown', e => {
   }
 });
 
-/* ═══ остальные кнопки ═══ */
 const modal = document.getElementById('modal');
 const btnCreate = document.getElementById('btnCreate');
-const btnSave   = document.getElementById('btnSave');
 const btnFull   = document.getElementById('btnFull');
 
 btnCreate.addEventListener('click', () => modal.classList.add('open'));
@@ -797,53 +1351,9 @@ modal.querySelectorAll('.shape-card').forEach(el =>
   el.addEventListener('click', () => { spawn(el.dataset.shape); closeModal(); })
 );
 
-/* ═══ сохранение в человекочитаемый JSON ═══ */
-function round3(n){ return Math.round(n * 1000) / 1000; }
-function saveBlob(blob, name){
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-}
-btnSave.addEventListener('click', () => {
-  if(!models.length){ toast('Сначала создайте модель'); return; }
-  const data = {
-    format: "gran-3d-scene/v1",
-    description: "Сцена 3D-мастерской ГРАНЬ. "
-      + "Отправь этот файл ИИ (или вставь его содержимое в чат) — "
-      + "он прочитает JSON и восстановит сцену командой loadScene().",
-    savedAt: new Date().toISOString(),
-    objects: models.map(m => ({
-      shape: m.userData.shape,
-      position: [round3(m.position.x), round3(m.position.y), round3(m.position.z)],
-      scale:    [round3(m.scale.x),    round3(m.scale.y),    round3(m.scale.z)],
-      color:    '#' + m.material.color.getHexString()
-    }))
-  };
-  saveBlob(
-    new Blob([JSON.stringify(data, null, 2)], { type:'application/json' }),
-    'gran-scene.json'
-  );
-  toast('Сохранил gran-scene.json — это текст, который я прочитаю');
-});
-
-/* функция загрузки сцены из JSON (можно вызвать из консоли или передать файл) */
 window.loadScene = function(data){
   if(typeof data === 'string') data = JSON.parse(data);
-  if(!data || !Array.isArray(data.objects)){
-    toast('Неверный формат файла'); return;
-  }
-  // очищаем сцену
-  [...models].forEach(m => destroyMesh(m));
-  spawnCount = 0;
-  deselect();
-  // воссоздаём объекты
-  data.objects.forEach(o => {
-    spawn(o.shape, o.position, o.scale, o.color);
-  });
-  deselect();
-  toast(`Сцена загружена: ${data.objects.length} фигур`);
+  if(applySceneData(data)) toast('Сцена загружена');
 };
 
 btnFull.addEventListener('click', async () => {
@@ -855,7 +1365,6 @@ btnFull.addEventListener('click', async () => {
 document.addEventListener('fullscreenchange', () =>
   document.body.classList.toggle('fs', !!document.fullscreenElement));
 
-/* ═══ служебное ═══ */
 const toastEl = document.getElementById('toast');
 let toastTimer;
 function toast(msg){
@@ -872,7 +1381,6 @@ window.addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
-/* ═══ цикл рендера ═══ */
 const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   const t = clock.getElapsedTime();
@@ -896,7 +1404,7 @@ renderer.setAnimationLoop(() => {
   });
 
   if(gizmo.visible){
-    const busy = scaling || movingAxis || moving;
+    const busy = scaling || movingAxis || rotating || moving;
     arrows.forEach((a, i) => {
       const bob = busy ? 0 : Math.sin(t * 2.4 + i * 1.05) * .05;
       a.group.position.copy(a.dir).multiplyScalar(a.dist + bob);
@@ -904,6 +1412,9 @@ renderer.setAnimationLoop(() => {
   }
   renderer.render(scene, camera);
 });
+
+updateRepoList();
+updateRepoLabel();
 </script>
 </body>
-    </html>
+ </html>
