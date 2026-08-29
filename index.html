@@ -1,1420 +1,1015 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>ГРАНЬ — 3D мастерская</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-  body{background:#0f1626;color:#e8eefb;font-family:'Rubik',system-ui,sans-serif;font-size:15px;
-    -webkit-user-select:none;user-select:none}
-  #scene{position:fixed;inset:0;z-index:0}
-  #scene canvas{display:block;touch-action:none;cursor:grab}
-  #vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
-    background:
-      radial-gradient(60% 40% at 50% 0%, rgba(90,170,255,.09), transparent 70%),
-      radial-gradient(120% 95% at 50% 42%, transparent 55%, rgba(5,9,18,.62) 100%)}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChugurHub</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="ChugurHub">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0d1117">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  #bar{position:fixed;top:14px;left:14px;right:14px;z-index:20;display:flex;align-items:center;gap:10px;
-    flex-wrap:wrap;padding:10px 16px;border:1px solid #26324e;border-radius:16px;
-    background:rgba(15,21,36,.92);box-shadow:0 12px 40px rgba(0,0,0,.45)}
-  .brand{display:flex;align-items:center;gap:11px;margin-right:6px}
-  .brand svg{width:30px;height:30px;filter:drop-shadow(0 3px 8px rgba(255,164,52,.35))}
-  .brand-name{font-family:'Russo One',sans-serif;font-size:19px;letter-spacing:2px;color:#ffd08a}
-  .brand-sub{display:block;font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;color:#7d90b4}
-  .grow{flex:1}
-  .chip{padding:7px 13px;border:1px solid #2b3a5e;border-radius:999px;background:#141d31;color:#8ea3c4;
-    font-size:13px;white-space:nowrap}
-  .chip b{color:#ffd08a;font-weight:600}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-  .btn{display:inline-flex;align-items:center;gap:8px;font:600 14px 'Rubik',sans-serif;padding:10px 16px;
-    border-radius:11px;border:1px solid transparent;cursor:pointer;touch-action:manipulation;
-    transition:transform .18s, box-shadow .18s, background .18s, border-color .18s}
-  .btn svg{width:17px;height:17px;flex:none}
-  .btn:hover{transform:translateY(-2px)}
-  .btn:active{transform:translateY(0) scale(.97)}
-  .btn:focus-visible{outline:2px solid #ffd08a;outline-offset:2px}
-  .btn-menu{background:#161d2e;color:#ffd08a;border-color:#2c3a58;padding:10px}
-  .btn-menu:hover{background:#1d2740}
-  .btn-create{background:linear-gradient(160deg,#ffc25e,#ff9a2b);color:#2a1703;box-shadow:0 6px 20px rgba(255,158,46,.35)}
-  .btn-create:hover{box-shadow:0 10px 26px rgba(255,158,46,.5)}
-  .btn-color{background:#1c1a30;color:#d9c8ff;border-color:#3d3468}
-  .btn-color:hover{background:#272244}
-  .btn-copy{background:#132427;color:#7fe8d8;border-color:#2a5a55}
-  .btn-copy:hover{background:#183238}
-  .btn-del{background:#251620;color:#ff8d9d;border-color:#57293a;padding:10px}
-  .btn-del:hover{background:#341c2a}
-  .btn-repo{background:#1d2a1d;color:#9fe89f;border-color:#3a5a3a}
-  .btn-repo:hover{background:#253725}
-  .btn-save{background:#152440;color:#7fdcff;border-color:#2b4a6e}
-  .btn-save:hover{background:#1b2f52;box-shadow:0 8px 22px rgba(80,190,255,.22)}
-  .btn-full{background:#161d2e;color:#c7d3ea;border-color:#2c3a58}
-  .btn-full:hover{background:#1d2740}
-  .btn-color.active{border-color:#ffb454;box-shadow:0 0 0 2px rgba(255,180,84,.35), 0 6px 18px rgba(255,158,46,.25)}
-  .btn-copy.active{border-color:#38e0c6;box-shadow:0 0 0 2px rgba(56,224,198,.35), 0 6px 18px rgba(56,224,198,.22)}
-  .btn-del.active{border-color:#ff4d5e;box-shadow:0 0 0 2px rgba(255,77,94,.4), 0 6px 18px rgba(255,77,94,.25)}
-  #colorDot{width:13px;height:13px;border-radius:50%;background:#ffb454;border:1.5px solid rgba(255,255,255,.45);flex:none}
-  #btnFull .i-exit{display:none}
-  body.fs #btnFull .i-enter{display:none}
-  body.fs #btnFull .i-exit{display:block}
+        .header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
 
-  #menuBack{position:fixed;inset:0;background:rgba(4,8,16,.5);z-index:39;opacity:0;visibility:hidden;transition:.25s}
-  #menuBack.open{opacity:1;visibility:visible}
-  #menu{position:fixed;top:0;left:0;bottom:0;width:min(320px,86vw);z-index:40;background:#121a2b;
-    border-right:1px solid #2c3c60;box-shadow:20px 0 60px rgba(0,0,0,.5);transform:translateX(-105%);
-    transition:transform .28s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;padding:16px}
-  #menu.open{transform:none}
-  .menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-  .menu-head span{font-family:'Russo One',sans-serif;font-size:17px;color:#ffe0b0;letter-spacing:1px}
-  .menu-actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-  .menu-actions button{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;
-    font:600 13px 'Rubik',sans-serif;padding:10px 8px;border-radius:10px;cursor:pointer;
-    border:1px solid transparent;transition:.18s}
-  .ma-new{background:#1d2a1d;color:#9fe89f;border-color:#3a5a3a}
-  .ma-new:hover{background:#253725}
-  .ma-as{background:#152440;color:#7fdcff;border-color:#2b4a6e}
-  .ma-as:hover{background:#1b2f52}
-  .ma-im{background:#241d30;color:#d9c8ff;border-color:#3d3468}
-  .ma-im:hover{background:#2d2540}
-  #repoList{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;padding-right:2px}
-  .repo-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#1a2440;
-    border:1px solid #2b3a5e;border-radius:10px;padding:10px 12px}
-  .repo-name{font-size:14px;color:#dfe8fa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
-  .repo-btns{display:flex;gap:6px}
-  .repo-btn{padding:6px 10px;border-radius:8px;cursor:pointer;font:600 12px 'Rubik',sans-serif;border:1px solid transparent;transition:.15s}
-  .repo-btn.load{background:#152440;color:#7fdcff;border-color:#2b4a6e}
-  .repo-btn.load:hover{background:#1b2f52}
-  .repo-btn.del{background:#251620;color:#ff8d9d;border-color:#57293a;min-width:34px}
-  .repo-btn.del.arm{background:#57293a;color:#fff;border-color:#ff4d5e}
-  .repo-empty{color:#8ea3c4;font-size:13px;text-align:center;padding:24px 8px;line-height:1.5}
+        .header h1 {
+            font-size: 20px;
+            flex: 1;
+            color: #58a6ff;
+            font-weight: bold;
+        }
 
-  .modal-back{position:absolute;inset:0;background:rgba(4,8,16,.68);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
-  #nameModal,#exportModal{position:fixed;inset:0;z-index:55;display:grid;place-items:center;visibility:hidden;transition:visibility 0s .25s}
-  #nameModal.open,#exportModal.open{visibility:visible;transition:none}
-  #nameModal.open .modal-back,#exportModal.open .modal-back{opacity:1}
-  #nameModal .modal-card,#exportModal .modal-card{position:relative;width:min(400px,92vw);background:linear-gradient(180deg,#182136,#121a2b);
-    border:1px solid #2c3c60;border-radius:18px;padding:26px 24px;box-shadow:0 30px 80px rgba(0,0,0,.55);
-    transform:translateY(16px) scale(.95);opacity:0;transition:.28s cubic-bezier(.2,.9,.3,1.2)}
-  #nameModal.open .modal-card,#exportModal.open .modal-card{transform:none;opacity:1}
-  #nameModal h2,#exportModal h2{font-family:'Russo One',sans-serif;font-size:19px;color:#ffe0b0;margin-bottom:8px}
-  #repoNameInput{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #33456e;background:#0f1626;
-    color:#eaf1ff;font:500 15px 'Rubik',sans-serif;outline:none;margin:10px 0 16px}
-  #repoNameInput:focus{border-color:#ffb454}
-  .name-row{display:flex;gap:10px}
-  .name-row .btn{flex:1;justify-content:center}
-  .export-grid{display:flex;flex-direction:column;gap:10px;margin-top:16px}
-  .exp-opt{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;
-    background:#1a2440;border:1px solid #2b3a5e;border-radius:12px;padding:13px 15px;cursor:pointer;
-    color:#dfe8fa;font-family:'Rubik',sans-serif;transition:.18s}
-  .exp-opt:hover{transform:translateY(-3px);border-color:#ffb454;box-shadow:0 12px 26px rgba(0,0,0,.4)}
-  .exp-opt b{font-size:15px;color:#ffd08a}
-  .exp-opt small{color:#8ea3c4;font-size:12px}
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
 
-  #palette{position:fixed;top:84px;right:14px;z-index:30;width:302px;background:#131b2e;border:1px solid #2c3c60;
-    border-radius:14px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.5);
-    opacity:0;visibility:hidden;transform:translateY(-10px) scale(.97);transition:.22s}
-  #palette.open{opacity:1;visibility:visible;transform:none}
-  .pal-head{display:flex;justify-content:space-between;align-items:center;font-family:'Russo One',sans-serif;
-    font-size:14px;color:#ffe0b0;margin-bottom:13px}
-  .pal-x{width:28px;height:28px;border-radius:8px;background:#202c48;border:1px solid #33456e;color:#9fb2d6;font-size:13px;cursor:pointer;transition:.15s}
-  .pal-x:hover{background:#3d2030;color:#ff9aa8}
-  .swatches{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-  .sw{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;padding:0;border:2px solid rgba(255,255,255,.14);
-    transition:transform .15s, border-color .15s, box-shadow .15s}
-  .sw:hover{transform:scale(1.18);border-color:rgba(255,255,255,.75)}
-  .sw.sel{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.28)}
-  .custom-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;color:#8ea3c4;font-size:13.5px}
-  .custom-row input{width:60px;height:30px;border:none;background:none;cursor:pointer;padding:0}
+        button:active {
+            transform: scale(0.95);
+        }
 
-  #welcome{position:fixed;left:50%;top:57%;transform:translate(-50%,-50%);z-index:5;pointer-events:none;
-    text-align:center;transition:opacity .6s;animation:floaty 3.6s ease-in-out infinite}
-  #welcome.hide{opacity:0}
-  #welcome .w-pill{display:inline-block;padding:13px 24px;border:1px solid #33456e;border-radius:14px;
-    background:rgba(16,23,40,.85);color:#d9e4f8;font-size:15px;box-shadow:0 16px 44px rgba(0,0,0,.45)}
-  #welcome b{color:#ffd08a}
-  @keyframes floaty{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,-58%)}}
+        .btn-secondary {
+            background: #21262d;
+            border: 1px solid #30363d;
+        }
 
-  #modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;visibility:hidden;transition:visibility 0s .28s}
-  #modal.open{visibility:visible;transition:none}
-  #modal.open .modal-back{opacity:1}
-  .modal-card{position:relative;width:min(640px,92vw);background:linear-gradient(180deg,#182136,#121a2b);
-    border:1px solid #2c3c60;border-radius:18px;padding:30px 28px 26px;box-shadow:0 30px 80px rgba(0,0,0,.55);
-    transform:translateY(18px) scale(.94);opacity:0;transition:.3s cubic-bezier(.2,.9,.3,1.2)}
-  #modal.open .modal-card{transform:none;opacity:1}
-  .modal-card h2{font-family:'Russo One',sans-serif;font-size:23px;letter-spacing:.5px;color:#ffe0b0}
-  .modal-sub{margin-top:6px;color:#8ea3c4;font-size:13.5px}
-  .modal-x{position:absolute;top:13px;right:13px;width:34px;height:34px;border-radius:9px;background:#202c48;
-    border:1px solid #33456e;color:#9fb2d6;font-size:15px;cursor:pointer;transition:.15s}
-  .modal-x:hover{background:#3d2030;border-color:#7e3a4e;color:#ff9aa8;transform:rotate(90deg)}
-  .shapes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
-  .shape-card{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 10px 18px;background:#1a2440;
-    border:1px solid #2b3a5e;border-radius:14px;color:#dfe8fa;cursor:pointer;font-family:'Rubik',sans-serif;
-    transition:transform .2s, border-color .2s, box-shadow .2s}
-  .shape-card:hover{transform:translateY(-5px);border-color:var(--acc);box-shadow:0 16px 32px rgba(0,0,0,.45)}
-  .shape-card:active{transform:translateY(-1px) scale(.98)}
-  .shape-card[data-shape="cube"]{--acc:#ffb454}
-  .shape-card[data-shape="sphere"]{--acc:#4fd2ff}
-  .shape-card[data-shape="cone"]{--acc:#ff6f61}
-  .shape-card[data-shape="prism"]{--acc:#f458c4}
-  .shape-card[data-shape="cyl"]{--acc:#a44dff}
-  .shape-card[data-shape="glass"]{--acc:#9adde8}
-  .shape-card[data-shape="wind"]{--acc:#bfeef0}
-  .shape-ico{transition:transform .25s}
-  .shape-card:hover .shape-ico{transform:scale(1.14) rotate(-5deg)}
-  .ico-sq{width:46px;height:46px;border-radius:9px;background:linear-gradient(145deg,#ffc76b,#ff9a2b);box-shadow:0 8px 20px rgba(255,164,52,.4)}
-  .ico-ci{width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#8fe3ff,#26a9e0);box-shadow:0 8px 20px rgba(79,210,255,.35)}
-  .ico-tr{width:52px;height:46px;background:linear-gradient(160deg,#ff9384,#f04a38);
-    clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 8px 14px rgba(255,111,97,.4))}
-  .ico-pr{width:52px;height:46px;background:linear-gradient(160deg,#ff9ade,#f458c4);
-    clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 8px 14px rgba(244,88,196,.4))}
-  .ico-cy{width:44px;height:48px;background:linear-gradient(90deg,#7a2fe0,#b06cff 55%,#8a2be2);
-    border-radius:50%/16px;box-shadow:0 8px 20px rgba(164,77,255,.4)}
-  .ico-gl{width:44px;height:48px;border-radius:5px;border:2px solid rgba(170,225,235,.9);
-    background:linear-gradient(160deg,rgba(200,240,246,.55),rgba(140,210,222,.28));
-    box-shadow:0 8px 20px rgba(150,220,230,.25), inset 0 0 12px rgba(255,255,255,.35)}
-  .ico-ws{width:56px;height:42px;background:linear-gradient(180deg,rgba(205,242,246,.6),rgba(150,215,225,.3));
-    clip-path:polygon(14% 0,86% 0,100% 100%,0 100%);
-    filter:drop-shadow(0 8px 14px rgba(150,220,230,.35))}
-  .shape-card b{font-size:15px;font-weight:600}
-  .shape-card small{color:#8ea3c4;font-size:12px;margin-top:-6px}
+        .btn-danger {
+            background: #da3633;
+        }
 
-  #toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,14px);z-index:60;background:#101a2e;
-    border:1px solid #3a4d78;border-left:3px solid #ffb454;color:#eaf1ff;padding:11px 20px;border-radius:10px;
-    font-size:14px;opacity:0;pointer-events:none;transition:.3s;box-shadow:0 12px 30px rgba(0,0,0,.4)}
-  #toast.show{opacity:1;transform:translate(-50%,0)}
+        .btn-preview {
+            background: #58a6ff;
+            color: #000;
+        }
 
-  @media (max-width:720px){
-    .brand-sub{display:none}
-    .btn{padding:9px 12px;font-size:13px}
-    .btn .btn-label{display:none}
-    .btn-del,.btn-menu{padding:9px}
-    .chip{display:none}
-    .shapes{gap:10px;grid-template-columns:repeat(2,1fr)}
-    .modal-card{padding:24px 18px 20px}
-    #palette{left:14px;right:14px;width:auto;top:auto;bottom:14px}
-  }
-</style>
+        .btn-pages {
+            background: #a371f7;
+            color: white;
+        }
+
+        .btn-create-page {
+            background: #f0883e;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 15px;
+            color: #8b949e;
+            border-bottom: 2px solid transparent;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .tab.active {
+            color: #e6edf3;
+            border-bottom-color: #58a6ff;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .repo-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .repo-card:active {
+            border-color: #58a6ff;
+            transform: scale(0.98);
+        }
+
+        .repo-card h3 {
+            color: #58a6ff;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .repo-card p {
+            color: #8b949e;
+            font-size: 14px;
+            margin: 3px 0;
+        }
+
+        .repo-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #8b949e;
+        }
+
+        .empty-state .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        input {
+            width: 100%;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-family: inherit;
+        }
+
+        .search-panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .search-input-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 8px;
+            display: none;
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 8px;
+            margin-bottom: 4px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-result-item:hover {
+            border-color: #58a6ff;
+            background: #1c2128;
+        }
+
+        .search-result-item:active {
+            transform: scale(0.98);
+        }
+
+        .search-result-line {
+            color: #58a6ff;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .search-result-code {
+            color: #e6edf3;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .search-result-code mark {
+            background: #f0883e;
+            color: #000;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        .search-no-results {
+            text-align: center;
+            padding: 20px;
+            color: #8b949e;
+            font-size: 14px;
+        }
+
+        .editor-container {
+            display: flex;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            overflow-y: auto;
+            overflow-x: auto;
+            max-height: 500px;
+            position: relative;
+        }
+
+        .line-numbers {
+            background: #161b22;
+            color: #8b949e;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 12px 8px;
+            text-align: right;
+            user-select: none;
+            border-right: 1px solid #30363d;
+            min-width: 45px;
+            white-space: pre;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        textarea {
+            flex: 1;
+            background: #0d1117;
+            color: #e6edf3;
+            border: none;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: none;
+            word-break: break-all;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            outline: none;
+            overflow: visible;
+            min-height: 100%;
+        }
+
+        textarea:focus {
+            border: none;
+            outline: none;
+        }
+
+        .file-item {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .file-item .file-name {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 500px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #238636;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none;
+            z-index: 200;
+        }
+
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .site-url {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #58a6ff;
+            margin: 5px 0;
+            word-break: break-all;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .site-url span {
+            flex: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    </style>
 </head>
 <body>
-
-<div id="scene"></div>
-<div id="vignette"></div>
-
-<header id="bar">
-  <button class="btn btn-menu" id="btnMenu" title="Репозитории">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-  </button>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 2 21 7 12 12 3 7Z" fill="#ffc25e"/>
-      <path d="M3 7l9 5v10l-9-5Z" fill="#e0703f"/>
-      <path d="M21 7l-9 5v10l9-5Z" fill="#4fd2ff"/>
-    </svg>
-    <div><span class="brand-name">ГРАНЬ</span><span class="brand-sub">3D-мастерская</span></div>
-  </div>
-  <div class="grow"></div>
-  <div class="chip">Репозиторий: <b id="repoLabel">—</b></div>
-  <div class="chip">Фигур: <b id="count">0</b></div>
-
-  <button class="btn btn-create" id="btnCreate" title="Создать начальную модель">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    <span class="btn-label">Создать модель</span>
-  </button>
-
-  <button class="btn btn-color" id="btnColor" title="Покрасить предмет">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2.7s6.3 6.6 6.3 11.2a6.3 6.3 0 1 1-12.6 0C5.7 9.3 12 2.7 12 2.7Z"/></svg>
-    <span class="btn-label">Цвет</span>
-    <span id="colorDot"></span>
-  </button>
-
-  <button class="btn btn-copy" id="btnCopy" title="Сделать копию предмета">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.2"/><path d="M15.5 5.5v-1a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h1"/></svg>
-    <span class="btn-label">Копия</span>
-  </button>
-
-  <button class="btn btn-del" id="btnDelete" title="Удалить предмет">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.8A.8.8 0 0 1 9.8 4h4.4a.8.8 0 0 1 .8.8V7"/><path d="M6.5 7l1 12.2a1 1 0 0 0 1 .8h7a1 1 0 0 0 1-.8L17.5 7"/><path d="M10 11v5M14 11v5"/></svg>
-  </button>
-
-  <button class="btn btn-repo" id="btnRepoSave" title="Сохранить в репозиторий">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
-    <span class="btn-label">Сохранить</span>
-  </button>
-
-  <button class="btn btn-save" id="btnDownload" title="Скачать файл">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/></svg>
-    <span class="btn-label">Скачать</span>
-  </button>
-
-  <button class="btn btn-full" id="btnFull" title="Во весь экран">
-    <svg class="i-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-    <svg class="i-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
-    <span class="btn-label">Fullscreen</span>
-  </button>
-</header>
-
-<div id="menuBack"></div>
-<div id="menu">
-  <div class="menu-head">
-    <span>Репозитории</span>
-    <button class="pal-x" id="menuClose" aria-label="Закрыть">✕</button>
-  </div>
-  <div class="menu-actions">
-    <button class="ma-new" id="btnNewScene">+ Новая сцена</button>
-    <button class="ma-as" id="btnSaveAs">Как копию</button>
-    <button class="ma-im" id="btnImport">Импорт JSON</button>
-  </div>
-  <div id="repoList"></div>
-</div>
-
-<div id="nameModal">
-  <div class="modal-back" data-nameclose></div>
-  <div class="modal-card">
-    <h2 id="nameModalTitle">Название репозитория</h2>
-    <input id="repoNameInput" type="text" placeholder="Введите название…" maxlength="40" autocomplete="off">
-    <div class="name-row">
-      <button class="btn btn-create" id="nameOk">Сохранить</button>
-      <button class="btn btn-full" data-nameclose>Отмена</button>
+    <div class="header">
+        <h1>📦 ChugurHub</h1>
+        <button onclick="showCreateRepo()">+ Новый</button>
     </div>
-  </div>
-</div>
 
-<div id="exportModal">
-  <div class="modal-back" data-exclose></div>
-  <div class="modal-card">
-    <h2>Скачать сцену</h2>
-    <p class="modal-sub">Выберите формат файла</p>
-    <div class="export-grid">
-      <button class="exp-opt" id="expGlb"><b>.GLB</b><small>3D-файл: просмотрщики, Blender, Windows 3D Viewer</small></button>
-      <button class="exp-opt" id="expHtml"><b>.HTML</b><small>Точный просмотр в браузере — как в редакторе</small></button>
-      <button class="exp-opt" id="expJson"><b>.JSON</b><small>Для ИИ и обратного импорта в меню ☰</small></button>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('repos', this)">📁 Репозитории</div>
+        <div class="tab" onclick="switchTab('pages', this)">🌐 Pages</div>
     </div>
-  </div>
-</div>
 
-<div id="welcome">
-  <div class="w-pill">Нажмите <b>«Создать модель»</b> сверху,<br>чтобы добавить первую фигуру</div>
-</div>
+    <div class="content" id="content"></div>
 
-<div id="palette">
-  <div class="pal-head">Выберите цвет <button class="pal-x" id="palClose" aria-label="Закрыть">✕</button></div>
-  <div class="swatches"></div>
-  <label class="custom-row">Свой цвет: <input type="color" id="customColor" value="#ffb454"></label>
-</div>
-
-<div id="modal" role="dialog" aria-modal="true">
-  <div class="modal-back" data-close></div>
-  <div class="modal-card">
-    <button class="modal-x" data-close aria-label="Закрыть">✕</button>
-    <h2>Новая модель</h2>
-    <p class="modal-sub">Выберите форму — она появится рядом с другими</p>
-    <div class="shapes">
-      <button class="shape-card" data-shape="cube">
-        <span class="shape-ico ico-sq"></span><b>Квадрат</b><small>→ куб</small>
-      </button>
-      <button class="shape-card" data-shape="sphere">
-        <span class="shape-ico ico-ci"></span><b>Круг</b><small>→ сфера</small>
-      </button>
-      <button class="shape-card" data-shape="cone">
-        <span class="shape-ico ico-tr"></span><b>Треугольник</b><small>→ конус</small>
-      </button>
-      <button class="shape-card" data-shape="prism">
-        <span class="shape-ico ico-pr"></span><b>Треугольник</b><small>→ призма</small>
-      </button>
-      <button class="shape-card" data-shape="cyl">
-        <span class="shape-ico ico-cy"></span><b>Цилиндр</b><small>→ цилиндр</small>
-      </button>
-      <button class="shape-card" data-shape="glass">
-        <span class="shape-ico ico-gl"></span><b>Стекло</b><small>→ панель</small>
-      </button>
-      <button class="shape-card" data-shape="wind">
-        <span class="shape-ico ico-ws"></span><b>Лобовое</b><small>→ стекло</small>
-      </button>
+    <div class="modal" id="createRepoModal">
+        <div class="modal-content">
+            <h2>Создать репозиторий</h2>
+            <input type="text" id="repoName" placeholder="Название репозитория">
+            <textarea id="repoDesc" placeholder="Описание" rows="3" style="min-height: 80px;"></textarea>
+            <button onclick="createRepo()">Создать</button>
+            <button class="btn-secondary" onclick="closeModal('createRepoModal')" style="margin-left: 10px;">Отмена</button>
+        </div>
     </div>
-  </div>
-</div>
 
-<div id="toast"></div>
+    <div class="modal" id="createFileModal">
+        <div class="modal-content">
+            <h2>Создать файл</h2>
+            <input type="text" id="fileName" placeholder="Название файла (например, index.html)">
+            <button onclick="createFile()">Создать</button>
+            <button class="btn-secondary" onclick="closeModal('createFileModal')" style="margin-left: 10px;">Отмена</button>
+        </div>
+    </div>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
+    <div class="modal" id="createPageModal">
+        <div class="modal-content">
+            <h2>Создать страницу Pages</h2>
+            <input type="text" id="pageName" placeholder="Название страницы (для адреса)">
+            <button onclick="createPage()">Создать</button>
+            <button class="btn-secondary" onclick="closeModal('createPageModal')" style="margin-left: 10px;">Отмена</button>
+        </div>
+    </div>
 
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    <div class="toast" id="toast"></div>
 
-function autoFullscreen(){
-  window.removeEventListener('pointerdown', autoFullscreen, true);
-  if(!document.fullscreenElement && document.documentElement.requestFullscreen){
-    document.documentElement.requestFullscreen().catch(() => {});
-  }
-}
-window.addEventListener('pointerdown', autoFullscreen, true);
+    <script>
+        let repos = [];
+        let currentRepo = null;
+        let currentFile = null;
+        let currentTab = 'repos';
 
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.12;
-document.getElementById('scene').appendChild(renderer.domElement);
-const canvas = renderer.domElement;
+        document.addEventListener('paste', function(e) {
+            if (e.target && e.target.id === 'fileContent') {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+                const textarea = e.target;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const value = textarea.value;
+                
+                setTimeout(() => {
+                    textarea.value = value.substring(0, start) + text + value.substring(end);
+                    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+                    
+                    // СНАЧАЛА обновляем высоту, ПОТОМ номера строк
+                    autoResizeTextarea();
+                    setTimeout(() => {
+                        updateLineNumbers();
+                    }, 20);
+                }, 0);
+            }
+        }, true);
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0f1626);
-scene.fog = new THREE.Fog(0x0f1626, 26, 60);
+        function updateLineNumbers() {
+            const textarea = document.getElementById('fileContent');
+            const lineNumbers = document.getElementById('lineNumbers');
+            if (!textarea || !lineNumbers) return;
 
-const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, .1, 200);
-camera.position.set(7, 5.4, 9.5);
-
-const controls = new OrbitControls(camera, canvas);
-controls.target.set(0, 1.1, 0);
-controls.enableDamping = true;
-controls.dampingFactor = .08;
-controls.minDistance = 2.4;
-controls.maxDistance = 38;
-controls.maxPolarAngle = Math.PI * .52;
-controls.autoRotate = true;
-controls.autoRotateSpeed = .9;
-let targetGoal = controls.target.clone();
-
-scene.add(new THREE.HemisphereLight(0xbcd4ff, 0x1a2030, .85));
-const key = new THREE.DirectionalLight(0xffe0b8, 1.7);
-key.position.set(7, 12, 6);
-key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
-key.shadow.camera.left = key.shadow.camera.bottom = -14;
-key.shadow.camera.right = key.shadow.camera.top = 14;
-key.shadow.bias = -0.0004;
-scene.add(key);
-const rim = new THREE.DirectionalLight(0x66aaff, .7);
-rim.position.set(-8, 6, -7);
-scene.add(rim);
-
-const grid = new THREE.GridHelper(50, 50, 0x3a4a6b, 0x212c44);
-grid.material.transparent = true;
-grid.material.opacity = .85;
-scene.add(grid);
-
-const shadowPlane = new THREE.Mesh(new THREE.CircleGeometry(28, 48), new THREE.ShadowMaterial({ opacity:.38 }));
-shadowPlane.rotation.x = -Math.PI/2;
-shadowPlane.position.y = .005;
-shadowPlane.receiveShadow = true;
-scene.add(shadowPlane);
-
-const gc = document.createElement('canvas'); gc.width = gc.height = 512;
-const gx = gc.getContext('2d');
-const grad = gx.createRadialGradient(256,256,20, 256,256,250);
-grad.addColorStop(0,'rgba(96,150,255,.22)');
-grad.addColorStop(.55,'rgba(96,150,255,.07)');
-grad.addColorStop(1,'rgba(96,150,255,0)');
-gx.fillStyle = grad; gx.fillRect(0,0,512,512);
-const glow = new THREE.Mesh(new THREE.PlaneGeometry(58,58),
-  new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(gc), transparent:true, depthWrite:false }));
-glow.rotation.x = -Math.PI/2;
-glow.position.y = -.03;
-glow.renderOrder = -1;
-scene.add(glow);
-
-/* ═══ геометрии, в т.ч. НОВЫЕ: стекло и лобовое ═══ */
-function triGeo(){
-  const s = new THREE.Shape();
-  s.moveTo(-1.5, -1);
-  s.lineTo( 1.5, -1);
-  s.lineTo(-0.5,  1);
-  s.closePath();
-  const g = new THREE.ExtrudeGeometry(s, { depth:1.6, bevelEnabled:false });
-  g.translate(0, 0, -0.8);
-  return g;
-}
-function windshieldGeo(){
-  const s = new THREE.Shape();
-  s.moveTo(-1.6, -1.1);
-  s.quadraticCurveTo(0, -1.35, 1.6, -1.1);
-  s.lineTo(1.15, 1.0);
-  s.quadraticCurveTo(0, 1.2, -1.15, 1.0);
-  s.closePath();
-  const g = new THREE.ExtrudeGeometry(s, { depth:.1, bevelEnabled:false, curveSegments:24 });
-  g.translate(0, 0, -.05);
-  const p = g.attributes.position;
-  for(let i = 0; i < p.count; i++){
-    const x = p.getX(i);
-    p.setZ(i, p.getZ(i) + x * x * .18);   // лёгкий изгиб, как у настоящего лобового
-  }
-  g.computeVertexNormals();
-  return g;
-}
-
-const GLASS_MAT = { transparent:true, opacity:.28, roughness:.06, metalness:.05, depthWrite:false, side:THREE.DoubleSide };
-
-const SHAPES = {
-  cube:   { label:'Куб',     color:0xffb454, y:1,    geo:()=>new THREE.BoxGeometry(2,2,2) },
-  sphere: { label:'Сфера',   color:0x4fd2ff, y:1.25, geo:()=>new THREE.SphereGeometry(1.25,48,32) },
-  cone:   { label:'Конус',   color:0xff6f61, y:1.25, geo:()=>new THREE.ConeGeometry(1.35,2.5,48) },
-  prism:  { label:'Призма',  color:0xf458c4, y:1,    geo:triGeo },
-  cyl:    { label:'Цилиндр', color:0xa44dff, y:1.1,  geo:()=>new THREE.CylinderGeometry(1.15,1.15,2.2,48) },
-  glass:  { label:'Стекло',  color:0xcfeef2, y:1.3,  geo:()=>new THREE.BoxGeometry(2.4,2.6,.12),
-            matOpts:GLASS_MAT, castShadow:false },
-  wind:   { label:'Лобовое', color:0xd8f4f4, y:1.23, geo:windshieldGeo,
-            matOpts:GLASS_MAT, castShadow:false },
-};
-// точная высота установки, чтобы низ был на земле
-['glass','wind','prism'].forEach(k => {
-  const g = SHAPES[k].geo();
-  g.computeBoundingBox();
-  SHAPES[k].y = -g.boundingBox.min.y;
-});
-
-let models = [], spawnCount = 0, selected = null, gizmoTipShown = false;
-
-function spawn(type, position, scale, color, rotation){
-  const def = SHAPES[type];
-  if(!def) return;
-  const c = color !== undefined ? color : def.color;
-  const mat = new THREE.MeshStandardMaterial(Object.assign({
-    color:c, roughness:.4, metalness:.18, emissive:c, emissiveIntensity:0
-  }, def.matOpts || {}));
-  const mesh = new THREE.Mesh(def.geo(), mat);
-  mesh.geometry.computeBoundingBox();
-  const bb = mesh.geometry.boundingBox;
-  mesh.userData.baseHalf = {
-    x:(bb.max.x-bb.min.x)/2, y:(bb.max.y-bb.min.y)/2, z:(bb.max.z-bb.min.z)/2
-  };
-  mesh.userData.shape = type;
-  if(position){
-    mesh.position.fromArray(position);
-  } else if(models.length){
-    const last = models[models.length-1];
-    const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
-    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0,1,0)).normalize();
-    const r = Math.max(last.userData.baseHalf.x*last.scale.x, last.userData.baseHalf.z*last.scale.z);
-    mesh.position.copy(last.position).addScaledVector(right, r*2 + 1.2);
-    mesh.position.y = def.y;
-  } else {
-    mesh.position.set(0, def.y, 0);
-  }
-  if(scale) mesh.scale.fromArray(scale);
-  if(rotation){
-    mesh.quaternion.fromArray(rotation);
-    if(mesh.quaternion.lengthSq() < 1e-8) mesh.quaternion.set(0,0,0,1);
-    mesh.quaternion.normalize();
-  }
-  mesh.castShadow = def.castShadow !== false;
-  mesh.receiveShadow = def.castShadow !== false;
-  scene.add(mesh);
-  models.push(mesh);
-  spawnCount++;
-  select(mesh);
-  targetGoal.copy(mesh.position);
-  updateCounter();
-  document.getElementById('welcome').classList.add('hide');
-}
-
-function duplicateMesh(src){
-  const m = new THREE.Mesh(src.geometry, src.material.clone());
-  m.userData.shape = src.userData.shape;
-  m.userData.baseHalf = src.userData.baseHalf;
-  m.scale.copy(src.scale);
-  m.quaternion.copy(src.quaternion);
-  m.castShadow = src.castShadow;
-  m.receiveShadow = src.receiveShadow;
-  const fwd = new THREE.Vector3();
-  camera.getWorldDirection(fwd);
-  const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0,1,0)).normalize();
-  const r = Math.max(src.userData.baseHalf.x * src.scale.x, src.userData.baseHalf.z * src.scale.z);
-  m.position.copy(src.position).addScaledVector(right, r * 2 + .8);
-  m.userData.flash = performance.now();
-  scene.add(m);
-  models.push(m);
-  spawnCount++;
-  updateCounter();
-  select(m);
-  targetGoal.copy(m.position);
-}
-
-const gizmo = new THREE.Group();
-gizmo.visible = false;
-scene.add(gizmo);
-
-function arrowMat(color){
-  const mat = new THREE.MeshBasicMaterial({ color });
-  mat.toneMapped = false; mat.fog = false; mat.depthTest = false;
-  return mat;
-}
-function makeArrow(color){
-  const g = new THREE.Group();
-  const mat = arrowMat(color);
-  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.85,12), mat);
-  shaft.position.y = .425;
-  const tip = new THREE.Mesh(new THREE.ConeGeometry(.17,.42,20), mat);
-  tip.position.y = 1.06;
-  shaft.renderOrder = tip.renderOrder = 999;
-  g.add(shaft, tip);
-  return g;
-}
-function makeMoveArrow(color){
-  const g = new THREE.Group();
-  const mat = arrowMat(color);
-  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.028,.028,.7,10), mat);
-  shaft.position.y = .35;
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(.15,18,14), mat);
-  ball.position.y = .85;
-  shaft.renderOrder = ball.renderOrder = 999;
-  g.add(shaft, ball);
-  return g;
-}
-function makeRotRing(color){
-  const g = new THREE.Group();
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1, .02, 10, 64), arrowMat(color));
-  ring.renderOrder = 998;
-  const hit = new THREE.Mesh(new THREE.TorusGeometry(1, .10, 8, 48),
-    new THREE.MeshBasicMaterial({ transparent:true, opacity:0, depthWrite:false, depthTest:false }));
-  hit.renderOrder = 997;
-  g.add(ring, hit);
-  g.userData.ringMat = ring.material;
-  return g;
-}
-
-const ARROW_DEFS = [
-  { dir:new THREE.Vector3( 1,0,0), rot:[0,0,-Math.PI/2], axis:'x' },
-  { dir:new THREE.Vector3(-1,0,0), rot:[0,0, Math.PI/2], axis:'x' },
-  { dir:new THREE.Vector3(0, 1,0), rot:[0,0,0],          axis:'y' },
-  { dir:new THREE.Vector3(0,-1,0), rot:[Math.PI,0,0],    axis:'y' },
-  { dir:new THREE.Vector3(0,0, 1), rot:[ Math.PI/2,0,0], axis:'z' },
-  { dir:new THREE.Vector3(0,0,-1), rot:[-Math.PI/2,0,0], axis:'z' },
-];
-const SCALE_COLOR = { x:0xff5c5c, y:0x54e389, z:0x4f8dff };
-const MOVE_COLOR  = { x:0xffb0b0, y:0xb2f7cd, z:0xb0ccff };
-const ROT_COLOR   = { x:0xff5c5c, y:0x54e389, z:0x4f8dff };
-const ROT_DEFS = [
-  { axis:'x', rot:[0, Math.PI/2, 0] },
-  { axis:'y', rot:[Math.PI/2, 0, 0] },
-  { axis:'z', rot:[0, 0, 0] },
-];
-
-const arrows = [];
-ARROW_DEFS.forEach(d => {
-  const group = makeArrow(SCALE_COLOR[d.axis]);
-  group.rotation.set(...d.rot);
-  gizmo.add(group);
-  arrows.push({ group, dir:d.dir, axis:d.axis, kind:'scale', dist:1 });
-});
-ARROW_DEFS.forEach(d => {
-  const group = makeMoveArrow(MOVE_COLOR[d.axis]);
-  group.rotation.set(...d.rot);
-  gizmo.add(group);
-  arrows.push({ group, dir:d.dir, axis:d.axis, kind:'move', dist:1 });
-});
-const rotHandles = [];
-ROT_DEFS.forEach(d => {
-  const group = makeRotRing(ROT_COLOR[d.axis]);
-  group.rotation.set(...d.rot);
-  gizmo.add(group);
-  rotHandles.push({ group, axis:d.axis, ringMat:group.userData.ringMat, baseColor:ROT_COLOR[d.axis] });
-});
-
-function layoutGizmo(){
-  if(!selected) return;
-  gizmo.position.copy(selected.position);
-  gizmo.quaternion.copy(selected.quaternion);
-  let maxHalf = 0;
-  arrows.forEach(a => {
-    const half = selected.userData.baseHalf[a.axis] * selected.scale[a.axis];
-    a.dist = a.kind === 'scale' ? half + .18 : half + 1.72;
-    maxHalf = Math.max(maxHalf, half);
-  });
-  const radius = maxHalf + .7;
-  rotHandles.forEach(h => h.group.scale.setScalar(radius));
-}
-
-function resolveGizmoHit(obj){
-  let o = obj;
-  while(o && o !== gizmo){
-    const arrow = arrows.find(a => a.group === o);
-    if(arrow) return { type:'arrow', arrow };
-    const rh = rotHandles.find(h => h.group === o);
-    if(rh) return { type:'rot', handle:rh };
-    o = o.parent;
-  }
-  return null;
-}
-
-let mode = null;
-const paintColor = new THREE.Color('#ffb454');
-const palette  = document.getElementById('palette');
-const btnColor = document.getElementById('btnColor');
-const btnCopy  = document.getElementById('btnCopy');
-const btnDelete= document.getElementById('btnDelete');
-const colorDot = document.getElementById('colorDot');
-const swWrap   = document.querySelector('.swatches');
-
-const COLORS = [
-  '#ffffff','#e8edf7','#b7c3da','#8fa0bd','#5f6f8f','#39445e','#161b29',
-  '#ff4d4d','#ff7a45','#ffb454','#ffd93d','#f9f871','#d4ed62','#8ce05f',
-  '#3ddc84','#2ec4a6','#35d0c5','#4fd2ff','#38a3f1','#4d7cff','#5465ff',
-  '#7d5bff','#a44dff','#d44dff','#f458c4','#ff5c99','#ff8fb3','#c98a4b',
-  '#8d5a3b','#5a3825','#ffe0c2','#e0ff4f','#4fffd8','#9dff4f','#ff4f6e'
-];
-COLORS.forEach(c => {
-  const b = document.createElement('button');
-  b.className = 'sw'; b.style.background = c; b.title = c;
-  b.addEventListener('click', () => pickColor(c, b));
-  swWrap.appendChild(b);
-});
-
-function clearSel(){ swWrap.querySelectorAll('.sw').forEach(s => s.classList.remove('sel')); }
-function pickColor(c, el){
-  paintColor.set(c);
-  colorDot.style.background = '#' + paintColor.getHexString();
-  clearSel();
-  if(el) el.classList.add('sel');
-  palette.classList.remove('open');
-  enterMode('paint');
-  toast('Цвет выбран — нажимайте на предметы');
-}
-document.getElementById('customColor').addEventListener('input', e => {
-  paintColor.set(e.target.value);
-  colorDot.style.background = e.target.value;
-  clearSel();
-  if(mode !== 'paint') enterMode('paint');
-});
-document.getElementById('customColor').addEventListener('change', () => {
-  palette.classList.remove('open');
-  toast('Цвет выбран — нажимайте на предметы');
-});
-document.getElementById('palClose').addEventListener('click', () => palette.classList.remove('open'));
-
-function enterMode(m){
-  mode = m;
-  if(m !== 'paint') palette.classList.remove('open');
-  updateModeUI();
-}
-function exitMode(){
-  mode = null;
-  palette.classList.remove('open');
-  updateModeUI();
-}
-function updateModeUI(){
-  btnColor.classList.toggle('active', mode === 'paint');
-  btnCopy.classList.toggle('active', mode === 'copy');
-  btnDelete.classList.toggle('active', mode === 'delete');
-  canvas.style.cursor = 'grab';
-}
-
-btnColor.addEventListener('click', () => {
-  if(palette.classList.contains('open')){ palette.classList.remove('open'); return; }
-  if(mode === 'paint'){ exitMode(); return; }
-  palette.classList.add('open');
-});
-btnCopy.addEventListener('click', () => {
-  if(mode === 'copy'){ exitMode(); return; }
-  if(!models.length){ toast('Сначала создайте модель'); return; }
-  enterMode('copy');
-  toast('Нажмите на предмет — рядом появится его копия');
-});
-btnDelete.addEventListener('click', () => {
-  if(mode === 'delete'){ exitMode(); return; }
-  enterMode('delete');
-  toast('Нажмите на предмет, чтобы удалить его');
-});
-
-const REPOS_KEY = 'gran_repos_v1';
-let currentRepoName = null;
-
-function readAllRepos(){
-  try { return JSON.parse(localStorage.getItem(REPOS_KEY)) || {}; }
-  catch(e){ return {}; }
-}
-function writeRepo(name, data){
-  try {
-    const all = readAllRepos();
-    all[name] = data;
-    localStorage.setItem(REPOS_KEY, JSON.stringify(all));
-    return true;
-  } catch(e){ toast('Не удалось сохранить (хранилище недоступно)'); return false; }
-}
-function deleteRepo(name){
-  const all = readAllRepos();
-  delete all[name];
-  try { localStorage.setItem(REPOS_KEY, JSON.stringify(all)); } catch(e){}
-  if(currentRepoName === name) currentRepoName = null;
-  updateRepoList(); updateRepoLabel();
-  toast('Репозиторий удалён');
-}
-function updateRepoLabel(){
-  document.getElementById('repoLabel').textContent = currentRepoName || '—';
-}
-function updateRepoList(){
-  const all = readAllRepos();
-  const names = Object.keys(all);
-  const list = document.getElementById('repoList');
-  list.innerHTML = '';
-  if(!names.length){
-    list.innerHTML = '<div class="repo-empty">Пока нет репозиториев.<br>Создайте объекты и нажмите «Сохранить».</div>';
-    return;
-  }
-  names.forEach(name => {
-    const row = document.createElement('div');
-    row.className = 'repo-row';
-    const nm = document.createElement('div');
-    nm.className = 'repo-name';
-    nm.textContent = (name === currentRepoName ? '● ' : '') + name;
-    const btns = document.createElement('div');
-    btns.className = 'repo-btns';
-    const load = document.createElement('button');
-    load.className = 'repo-btn load'; load.textContent = 'Загрузить';
-    load.onclick = () => loadRepo(name);
-    const del = document.createElement('button');
-    del.className = 'repo-btn del'; del.textContent = '✕';
-    del.onclick = () => {
-      if(del.dataset.confirm){ deleteRepo(name); }
-      else {
-        del.dataset.confirm = '1';
-        del.textContent = 'Точно?';
-        del.classList.add('arm');
-        setTimeout(() => {
-          if(del.isConnected){ delete del.dataset.confirm; del.textContent='✕'; del.classList.remove('arm'); }
-        }, 2000);
-      }
-    };
-    btns.appendChild(load); btns.appendChild(del);
-    row.appendChild(nm); row.appendChild(btns);
-    list.appendChild(row);
-  });
-}
-
-function round6(n){ return Math.round(n * 1000000) / 1000000; }
-function buildObjects(){
-  return models.map(m => {
-    const q = m.quaternion.clone().normalize();
-    return {
-      shape: m.userData.shape,
-      position: [round6(m.position.x), round6(m.position.y), round6(m.position.z)],
-      scale:    [round6(m.scale.x),    round6(m.scale.y),    round6(m.scale.z)],
-      rotation: [round6(q.x), round6(q.y), round6(q.z), round6(q.w)],
-      color:    '#' + m.material.color.getHexString()
-    };
-  });
-}
-function clearScene(){
-  [...models].forEach(m => destroyMesh(m));
-  spawnCount = 0;
-}
-function saveRepo(){
-  if(!models.length){ toast('Сначала создайте модель'); return; }
-  if(currentRepoName){
-    if(writeRepo(currentRepoName, {objects: buildObjects()})){
-      toast('Сохранено: ' + currentRepoName);
-      updateRepoList();
-    }
-  } else {
-    openNamePrompt('Название репозитория', name => {
-      currentRepoName = name;
-      if(writeRepo(name, {objects: buildObjects()})){
-        toast('Сохранено: ' + name);
-        updateRepoList(); updateRepoLabel();
-      } else { currentRepoName = null; }
-    });
-  }
-}
-function saveRepoAs(){
-  if(!models.length){ toast('Сначала создайте модель'); return; }
-  openNamePrompt('Новое название', name => {
-    currentRepoName = name;
-    if(writeRepo(name, {objects: buildObjects()})){
-      toast('Сохранено: ' + name);
-      updateRepoList(); updateRepoLabel();
-    } else { currentRepoName = null; }
-  });
-}
-function loadRepo(name){
-  const all = readAllRepos();
-  const data = all[name];
-  if(!data || !Array.isArray(data.objects)){ toast('Не удалось загрузить'); return; }
-  applySceneData(data);
-  currentRepoName = name;
-  updateRepoLabel();
-  closeMenu();
-  toast('Загружено: ' + name);
-}
-function newScene(){
-  clearScene();
-  currentRepoName = null;
-  updateRepoLabel(); updateRepoList();
-  closeMenu();
-  document.getElementById('welcome').classList.remove('hide');
-  toast('Новая сцена');
-}
-
-function isFin(v){ return Number.isFinite(v); }
-function applySceneData(data){
-  if(!data || !Array.isArray(data.objects)){ toast('Неверный формат файла'); return false; }
-  clearScene();
-  let n = 0;
-  data.objects.forEach(o => {
-    if(!o || !SHAPES[o.shape]) return;
-    const pos = Array.isArray(o.position) && o.position.every(isFin) ? o.position : null;
-    const scl = Array.isArray(o.scale) && o.scale.every(v => isFin(v) && v > 0) ? o.scale : null;
-    const rot = Array.isArray(o.rotation) && o.rotation.every(isFin) ? o.rotation : null;
-    spawn(o.shape, pos, scl, o.color, rot || [0,0,0,1]);
-    n++;
-  });
-  deselect();
-  return n > 0;
-}
-
-const menu = document.getElementById('menu');
-const menuBack = document.getElementById('menuBack');
-function openMenu(){ updateRepoList(); menu.classList.add('open'); menuBack.classList.add('open'); }
-function closeMenu(){ menu.classList.remove('open'); menuBack.classList.remove('open'); }
-document.getElementById('btnMenu').addEventListener('click', openMenu);
-document.getElementById('menuClose').addEventListener('click', closeMenu);
-menuBack.addEventListener('click', closeMenu);
-document.getElementById('btnNewScene').addEventListener('click', newScene);
-document.getElementById('btnSaveAs').addEventListener('click', () => { closeMenu(); saveRepoAs(); });
-document.getElementById('btnRepoSave').addEventListener('click', saveRepo);
-
-const fileInput = document.createElement('input');
-fileInput.type = 'file';
-fileInput.accept = '.json,application/json';
-fileInput.style.display = 'none';
-document.body.appendChild(fileInput);
-fileInput.addEventListener('change', () => {
-  const f = fileInput.files[0];
-  if(!f) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try{
-      if(applySceneData(JSON.parse(reader.result))){
-        currentRepoName = null; updateRepoLabel();
-        toast('Файл загружен');
-      }
-    }catch(err){ toast('Не удалось прочитать файл'); }
-  };
-  reader.readAsText(f);
-  fileInput.value = '';
-});
-document.getElementById('btnImport').addEventListener('click', () => { closeMenu(); fileInput.click(); });
-
-let nameCallback = null;
-const nameModal = document.getElementById('nameModal');
-function openNamePrompt(title, cb){
-  document.getElementById('nameModalTitle').textContent = title;
-  const inp = document.getElementById('repoNameInput');
-  inp.value = '';
-  nameCallback = cb;
-  nameModal.classList.add('open');
-  setTimeout(() => inp.focus(), 60);
-}
-function closeNamePrompt(){
-  nameModal.classList.remove('open');
-  nameCallback = null;
-}
-document.getElementById('nameOk').addEventListener('click', () => {
-  const name = document.getElementById('repoNameInput').value.trim();
-  if(!name){ toast('Введите название'); return; }
-  const cb = nameCallback;
-  closeNamePrompt();
-  if(cb) cb(name);
-});
-document.getElementById('repoNameInput').addEventListener('keydown', e => {
-  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('nameOk').click(); }
-});
-nameModal.querySelectorAll('[data-nameclose]').forEach(el => el.addEventListener('click', closeNamePrompt));
-
-const exportModal = document.getElementById('exportModal');
-function closeExport(){ exportModal.classList.remove('open'); }
-exportModal.querySelectorAll('[data-exclose]').forEach(el => el.addEventListener('click', closeExport));
-document.getElementById('btnDownload').addEventListener('click', () => {
-  if(!models.length){ toast('Сначала создайте модель'); return; }
-  exportModal.classList.add('open');
-});
-
-function saveBlob(blob, name){
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-}
-
-function exportGLB(){
-  const exp = new THREE.Scene();
-  models.forEach(m => {
-    const c = m.clone();
-    c.material = m.material.clone();
-    c.material.emissiveIntensity = 0;
-    exp.add(c);
-  });
-  new GLTFExporter().parse(exp, res => {
-    saveBlob(new Blob([res], { type:'model/gltf-binary' }), 'gran-model.glb');
-    toast('Скачан gran-model.glb');
-  }, () => { toast('Не удалось экспортировать GLB'); }, { binary:true });
-}
-
-function exportJSON(){
-  const data = {
-    format: "gran-3d-scene/v3",
-    description: "Сцена 3D-мастерской ГРАНЬ. Отправь этот файл ИИ — он прочитает JSON и восстановит сцену через loadScene().",
-    savedAt: new Date().toISOString(),
-    objects: buildObjects()
-  };
-  saveBlob(new Blob([JSON.stringify(data, null, 2)], { type:'application/json' }), 'gran-scene.json');
-  toast('Скачан gran-scene.json');
-}
-
-function buildSnapshotHTML(data){
-  const json = JSON.stringify(data);
-  const CLOSE = '</' + 'script>';
-  return [
-    '<!DOCTYPE html>',
-    '<html><head><meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width,initial-scale=1">',
-    '<title>ГРАНЬ — просмотр модели</title>',
-    '<style>html,body{margin:0;height:100%;overflow:hidden;background:#0f1626}canvas{display:block}',
-    '#hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);color:#cdd9f2;font:12px Rubik,sans-serif;',
-    'background:rgba(13,18,32,.85);padding:7px 16px;border-radius:999px;white-space:nowrap}</style>',
-    '</head><body>',
-    '<div id="hint">Тяните — вращение · колесо/щипок — зум</div>',
-    '<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js">' + CLOSE,
-    '<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js">' + CLOSE,
-    '<script>',
-    '(function(){',
-    'var hint=document.getElementById("hint");',
-    'if(!window.THREE){hint.textContent="Не удалось загрузить 3D-движок — нужен интернет";return;}',
-    'var DATA=' + json + ';',
-    'var R=new THREE.WebGLRenderer({antialias:true});',
-    'R.setPixelRatio(Math.min(window.devicePixelRatio||1,2));',
-    'R.setSize(window.innerWidth,window.innerHeight);',
-    'R.shadowMap.enabled=true;R.outputEncoding=THREE.sRGBEncoding;',
-    'document.body.appendChild(R.domElement);',
-    'var S=new THREE.Scene();S.background=new THREE.Color(0x0f1626);',
-    'var C=new THREE.PerspectiveCamera(50,window.innerWidth/window.innerHeight,.1,500);',
-    'var O=new THREE.OrbitControls(C,R.domElement);O.enableDamping=true;',
-    'S.add(new THREE.HemisphereLight(0xbcd4ff,0x1a2030,.95));',
-    'var L=new THREE.DirectionalLight(0xffe0b8,1.2);L.position.set(6,10,5);S.add(L);',
-    'S.add(new THREE.GridHelper(60,60,0x3a4a6b,0x212c44));',
-    'var GEO={cube:function(){return new THREE.BoxGeometry(2,2,2)},',
-    'sphere:function(){return new THREE.SphereGeometry(1.25,48,32)},',
-    'cone:function(){return new THREE.ConeGeometry(1.35,2.5,48)},',
-    'cyl:function(){return new THREE.CylinderGeometry(1.15,1.15,2.2,48)},',
-    'glass:function(){return new THREE.BoxGeometry(2.4,2.6,.12)},',
-    'prism:function(){var s=new THREE.Shape();s.moveTo(-1.5,-1);s.lineTo(1.5,-1);s.lineTo(-0.5,1);s.closePath();',
-    'var g=new THREE.ExtrudeGeometry(s,{depth:1.6,bevelEnabled:false});g.translate(0,0,-0.8);return g;},',
-    'wind:function(){var s=new THREE.Shape();s.moveTo(-1.6,-1.1);s.quadraticCurveTo(0,-1.35,1.6,-1.1);',
-    's.lineTo(1.15,1.0);s.quadraticCurveTo(0,1.2,-1.15,1.0);s.closePath();',
-    'var g=new THREE.ExtrudeGeometry(s,{depth:.1,bevelEnabled:false,curveSegments:24});g.translate(0,0,-.05);',
-    'var p=g.attributes.position;for(var i=0;i<p.count;i++){p.setZ(i,p.getZ(i)+p.getX(i)*p.getX(i)*0.18);}',
-    'g.computeVertexNormals();return g;}};',
-    'var MOPT={glass:{transparent:true,opacity:.28,roughness:.06,metalness:.05,depthWrite:false,side:2},',
-    'wind:{transparent:true,opacity:.28,roughness:.06,metalness:.05,depthWrite:false,side:2}};',
-    'var box=new THREE.Box3();',
-    '(DATA.objects||[]).forEach(function(o){',
-    'var g=(GEO[o.shape]||GEO.cube)();',
-    'var mo=MOPT[o.shape]||{};',
-    'var mp={color:o.color||"#ffffff",roughness:.4,metalness:.15};',
-    'for(var k in mo)mp[k]=mo[k];',
-    'var m=new THREE.Mesh(g,new THREE.MeshStandardMaterial(mp));',
-    'if(o.position)m.position.fromArray(o.position);',
-    'if(o.scale)m.scale.fromArray(o.scale);',
-    'if(o.rotation){m.quaternion.fromArray(o.rotation);if(m.quaternion.lengthSq()<1e-8)m.quaternion.set(0,0,0,1);m.quaternion.normalize();}',
-    'm.castShadow=!mo.transparent;S.add(m);box.expandByObject(m);});',
-    'var c=box.getCenter(new THREE.Vector3());O.target.copy(c);',
-    'var sz=box.getSize(new THREE.Vector3()).length()||10;',
-    'C.position.copy(c).add(new THREE.Vector3(sz*.7,sz*.6,sz*.9));',
-    'R.setAnimationLoop(function(){O.update();R.render(S,C);});',
-    'window.addEventListener("resize",function(){',
-    'C.aspect=window.innerWidth/window.innerHeight;C.updateProjectionMatrix();',
-    'R.setSize(window.innerWidth,window.innerHeight);});',
-    '})();',
-    CLOSE,
-    '</body></html>'
-  ].join('\n');
-}
-function exportHTML(){
-  const data = { format:"gran-3d-scene/v3", objects: buildObjects() };
-  saveBlob(new Blob([buildSnapshotHTML(data)], { type:'text/html' }), 'gran-preview.html');
-  toast('Скачан gran-preview.html — откройте в браузере');
-}
-
-document.getElementById('expGlb').addEventListener('click', () => { closeExport(); exportGLB(); });
-document.getElementById('expHtml').addEventListener('click', () => { closeExport(); exportHTML(); });
-document.getElementById('expJson').addEventListener('click', () => { closeExport(); exportJSON(); });
-
-const raycaster = new THREE.Raycaster();
-const ndc = new THREE.Vector2();
-let scaling = null, movingAxis = null, rotating = null, moving = null, downInfo = null;
-let hoverArrow = null, hoverRot = null, hoverModel = null;
-const activePointers = new Set();
-
-function castAt(e){
-  const r = canvas.getBoundingClientRect();
-  ndc.x =  ((e.clientX - r.left) / r.width)  * 2 - 1;
-  ndc.y = -((e.clientY - r.top)  / r.height) * 2 + 1;
-  raycaster.setFromCamera(ndc, camera);
-  return raycaster;
-}
-function select(mesh){
-  if(selected && selected !== mesh) selected.material.emissiveIntensity = 0;
-  selected = mesh;
-  gizmo.visible = true;
-  layoutGizmo();
-  if(!gizmoTipShown){
-    gizmoTipShown = true;
-    toast('Конусы — размер, шарики — перенос, кольца — вращение');
-  }
-}
-function deselect(){
-  if(selected) selected.material.emissiveIntensity = 0;
-  selected = null;
-  gizmo.visible = false;
-}
-function cancelDrags(){
-  scaling = null; movingAxis = null; rotating = null; moving = null;
-  controls.enabled = true;
-  canvas.style.cursor = 'grab';
-}
-function destroyMesh(m){
-  if(selected === m) deselect();
-  scene.remove(m);
-  m.geometry.dispose(); m.material.dispose();
-  models = models.filter(x => x !== m);
-  updateCounter();
-}
-
-function axisPlane(dir, point){
-  const camDir = new THREE.Vector3();
-  camera.getWorldDirection(camDir);
-  const side = new THREE.Vector3().crossVectors(dir, camDir);
-  if(side.lengthSq() < 1e-6) side.set(0,0,1);
-  const normal = new THREE.Vector3().crossVectors(side, dir).normalize();
-  return new THREE.Plane().setFromNormalAndCoplanarPoint(normal, point);
-}
-function localAxisVec(axis){
-  const v = new THREE.Vector3();
-  if(axis==='x') v.set(1,0,0); else if(axis==='y') v.set(0,1,0); else v.set(0,0,1);
-  return v;
-}
-
-function startScale(a){
-  controls.enabled = false; hoverModel = null;
-  const worldDir = a.dir.clone().applyQuaternion(selected.quaternion);
-  const plane = axisPlane(worldDir, selected.position);
-  const start = new THREE.Vector3();
-  if(!raycaster.ray.intersectPlane(plane, start)) start.copy(selected.position);
-  scaling = { arrow:a, worldDir, plane, start,
-    startScale:selected.scale.clone(),
-    ref:selected.userData.baseHalf[a.axis] * selected.scale[a.axis] };
-  canvas.style.cursor = (a.axis==='x') ? 'ew-resize' : (a.axis==='y') ? 'ns-resize' : 'move';
-}
-
-function startMoveAxis(a){
-  controls.enabled = false; hoverModel = null;
-  const worldDir = a.dir.clone().applyQuaternion(selected.quaternion);
-  const plane = axisPlane(worldDir, selected.position);
-  const start = new THREE.Vector3();
-  if(!raycaster.ray.intersectPlane(plane, start)) start.copy(selected.position);
-  movingAxis = { arrow:a, worldDir, plane, start, startPos:selected.position.clone() };
-  canvas.style.cursor = 'move';
-}
-
-function startRotate(handle, e){
-  controls.enabled = false; hoverModel = null;
-  const worldAxis = localAxisVec(handle.axis).applyQuaternion(selected.quaternion).normalize();
-  const center = selected.position.clone();
-  const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(worldAxis, center);
-  const p0 = new THREE.Vector3();
-  const ok = raycaster.ray.intersectPlane(plane, p0);
-  const v0 = ok ? p0.sub(center) : new THREE.Vector3();
-  rotating = { worldAxis, startQuat:selected.quaternion.clone(), plane, center,
-    prevV:v0, totalAngle:0, lastX:e.clientX, useScreen:(v0.length() < 1e-3) };
-  canvas.style.cursor = 'grabbing';
-}
-
-function startMove(){
-  controls.enabled = false; hoverModel = null;
-  const normal = new THREE.Vector3();
-  camera.getWorldDirection(normal);
-  const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, selected.position);
-  const start = new THREE.Vector3();
-  if(!raycaster.ray.intersectPlane(plane, start)) start.copy(selected.position);
-  moving = { plane, start, startPos:selected.position.clone() };
-  canvas.style.cursor = 'move';
-}
-
-window.addEventListener('pointerdown', e => {
-  if(e.target !== canvas) return;
-  activePointers.add(e.pointerId);
-  controls.autoRotate = false;
-  if(activePointers.size > 1){ cancelDrags(); downInfo = null; return; }
-  castAt(e);
-
-  if(gizmo.visible){
-    const hit = raycaster.intersectObjects(gizmo.children, true)[0];
-    if(hit){
-      const res = resolveGizmoHit(hit.object);
-      if(res && selected){
-        if(res.type === 'arrow'){
-          if(res.arrow.kind === 'scale') startScale(res.arrow);
-          else startMoveAxis(res.arrow);
-        } else {
-          startRotate(res.handle, e);
+            const lines = textarea.value.split('\n').length;
+            let nums = '';
+            for (let i = 1; i <= lines; i++) {
+                nums += i + '\n';
+            }
+            lineNumbers.textContent = nums;
         }
-      }
-      e.preventDefault();
-      return;
-    }
-  }
 
-  const hitModel = raycaster.intersectObjects(models, false)[0];
-  if(hitModel){
-    if(mode === 'paint'){
-      const m = hitModel.object;
-      m.material.color.copy(paintColor);
-      m.userData.flash = performance.now();
-      e.preventDefault(); return;
-    }
-    if(mode === 'copy'){
-      duplicateMesh(hitModel.object);
-      exitMode();
-      toast('Копия создана');
-      e.preventDefault(); return;
-    }
-    if(mode === 'delete'){
-      destroyMesh(hitModel.object);
-      exitMode();
-      toast('Фигура удалена');
-      e.preventDefault(); return;
-    }
-    select(hitModel.object);
-    startMove();
-    e.preventDefault(); return;
-  }
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('fileContent');
+            if (!textarea) return;
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
 
-  downInfo = { x:e.clientX, y:e.clientY, t:performance.now(), id:e.pointerId };
-}, true);
+        function performSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            const textarea = document.getElementById('fileContent');
+            
+            if (!searchInput || !searchResults || !textarea) return;
+            
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                searchResults.classList.remove('show');
+                return;
+            }
+            
+            const lines = textarea.value.split('\n');
+            const results = [];
+            
+            lines.forEach((line, index) => {
+                const lowerLine = line.toLowerCase();
+                const lowerQuery = query.toLowerCase();
+                
+                if (lowerLine.includes(lowerQuery)) {
+                    results.push({
+                        lineNumber: index + 1,
+                        lineContent: line,
+                        query: query
+                    });
+                }
+            });
+            
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="search-no-results">🔍 Нет данных</div>';
+            } else {
+                let html = '';
+                results.forEach(result => {
+                    const highlightedLine = highlightMatch(result.lineContent, result.query);
+                    html += '<div class="search-result-item" onclick="goToLine(' + result.lineNumber + ')">';
+                    html += '<div class="search-result-line">Строка ' + result.lineNumber + '</div>';
+                    html += '<div class="search-result-code">' + highlightedLine + '</div>';
+                    html += '</div>';
+                });
+                searchResults.innerHTML = html;
+            }
+            
+            searchResults.classList.add('show');
+        }
 
-window.addEventListener('pointermove', e => {
-  if(scaling && selected){
-    castAt(e);
-    const p = new THREE.Vector3();
-    if(raycaster.ray.intersectPlane(scaling.plane, p)){
-      const d = scaling.worldDir;
-      const delta = p.dot(d) - scaling.start.dot(d);
-      let f = 1 + delta / scaling.ref;
-      f = Math.max(.06, Math.min(14, f));
-      selected.scale[scaling.arrow.axis] = scaling.startScale[scaling.arrow.axis] * f;
-      layoutGizmo();
-    }
-    return;
-  }
-  if(movingAxis && selected){
-    castAt(e);
-    const p = new THREE.Vector3();
-    if(raycaster.ray.intersectPlane(movingAxis.plane, p)){
-      const d = movingAxis.worldDir;
-      const delta = p.dot(d) - movingAxis.start.dot(d);
-      selected.position.copy(movingAxis.startPos).addScaledVector(d, delta);
-      layoutGizmo();
-    }
-    return;
-  }
-  if(rotating && selected){
-    castAt(e);
-    let applied = false;
-    const p = new THREE.Vector3();
-    if(!rotating.useScreen && raycaster.ray.intersectPlane(rotating.plane, p)){
-      const v1 = p.clone().sub(rotating.center);
-      if(v1.length() > 1e-4 && rotating.prevV.length() > 1e-4){
-        const cross = new THREE.Vector3().crossVectors(rotating.prevV, v1);
-        const dot = rotating.prevV.dot(v1);
-        const delta = Math.atan2(rotating.worldAxis.dot(cross), dot);
-        rotating.totalAngle += delta;
-        rotating.prevV.copy(v1);
-        applied = true;
-      }
-    }
-    if(!applied){
-      const dx = e.clientX - rotating.lastX;
-      rotating.totalAngle += dx * 0.02;
-    }
-    rotating.lastX = e.clientX;
-    const q = new THREE.Quaternion().setFromAxisAngle(rotating.worldAxis, rotating.totalAngle);
-    selected.quaternion.copy(q.multiply(rotating.startQuat));
-    layoutGizmo();
-    return;
-  }
-  if(moving && selected){
-    castAt(e);
-    const p = new THREE.Vector3();
-    if(raycaster.ray.intersectPlane(moving.plane, p)){
-      selected.position.copy(moving.startPos).add(p.sub(moving.start));
-      layoutGizmo();
-    }
-    return;
-  }
-  if(e.target !== canvas) return;
-  castAt(e);
-  const hit = gizmo.visible ? raycaster.intersectObjects(gizmo.children, true)[0] : null;
-  const desc = hit ? resolveGizmoHit(hit.object) : null;
-  arrows.forEach(a => a.group.scale.setScalar(
-    (desc && desc.type==='arrow' && desc.arrow===a) ? 1.18 : 1));
-  rotHandles.forEach(h => {
-    const hov = desc && desc.type==='rot' && desc.handle===h;
-    h.ringMat.color.setHex(hov ? 0xffffff : h.baseColor);
-  });
-  hoverArrow = (desc && desc.type==='arrow') ? desc.arrow : null;
-  hoverRot   = (desc && desc.type==='rot') ? desc.handle : null;
-  hoverModel = raycaster.intersectObjects(models, false)[0]?.object || null;
-  if(hoverArrow){
-    canvas.style.cursor = hoverArrow.kind==='move' ? 'move'
-      : hoverArrow.axis==='x' ? 'ew-resize' : hoverArrow.axis==='y' ? 'ns-resize' : 'move';
-  } else if(hoverRot){
-    canvas.style.cursor = 'grab';
-  } else if(hoverModel && mode){
-    canvas.style.cursor = mode==='paint' ? 'crosshair' : mode==='copy' ? 'copy' : 'pointer';
-  } else if(hoverModel){
-    canvas.style.cursor = 'move';
-  } else {
-    canvas.style.cursor = 'grab';
-  }
-});
+        function highlightMatch(text, query) {
+            const escapedText = escapeHtml(text);
+            const escapedQuery = escapeHtml(query);
+            const regex = new RegExp('(' + escapeRegExp(escapedQuery) + ')', 'gi');
+            return escapedText.replace(regex, '<mark>$1</mark>');
+        }
 
-window.addEventListener('pointerup', e => {
-  activePointers.delete(e.pointerId);
-  if(scaling){ scaling = null; controls.enabled = true; canvas.style.cursor='grab'; downInfo=null; return; }
-  if(movingAxis){
-    movingAxis = null; controls.enabled = true; canvas.style.cursor='grab';
-    if(selected) targetGoal.copy(selected.position);
-    downInfo=null; return;
-  }
-  if(rotating){
-    rotating = null; controls.enabled = true; canvas.style.cursor='grab';
-    if(selected) targetGoal.copy(selected.position);
-    downInfo=null; return;
-  }
-  if(moving){
-    moving = null; controls.enabled = true; canvas.style.cursor='grab';
-    if(selected) targetGoal.copy(selected.position);
-    downInfo=null; return;
-  }
-  if(downInfo && e.pointerId === downInfo.id && e.target === canvas){
-    const moved = Math.hypot(e.clientX - downInfo.x, e.clientY - downInfo.y);
-    if(moved < 8 && performance.now() - downInfo.t < 600) deselect();
-  }
-  downInfo = null;
-});
-window.addEventListener('pointercancel', e => {
-  activePointers.delete(e.pointerId);
-  cancelDrags();
-  downInfo = null;
-});
-canvas.addEventListener('wheel', () => controls.autoRotate = false, { passive:true });
-canvas.addEventListener('contextmenu', e => e.preventDefault());
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
 
-window.addEventListener('keydown', e => {
-  if(e.key === 'Escape'){
-    if(nameModal.classList.contains('open')) closeNamePrompt();
-    else if(exportModal.classList.contains('open')) closeExport();
-    else if(palette.classList.contains('open')) palette.classList.remove('open');
-    else if(menu.classList.contains('open')) closeMenu();
-    else if(modal.classList.contains('open')) closeModal();
-    else if(mode) exitMode();
-    else deselect();
-  }
-  if((e.key === 'Delete' || e.key === 'Backspace') && selected){
-    destroyMesh(selected);
-    toast('Фигура удалена');
-  }
-});
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-const modal = document.getElementById('modal');
-const btnCreate = document.getElementById('btnCreate');
-const btnFull   = document.getElementById('btnFull');
+        function goToLine(lineNumber) {
+            const textarea = document.getElementById('fileContent');
+            if (!textarea) return;
+            
+            const lines = textarea.value.split('\n');
+            let position = 0;
+            
+            for (let i = 0; i < lineNumber - 1; i++) {
+                position += lines[i].length + 1;
+            }
+            
+            textarea.focus();
+            textarea.setSelectionRange(position, position + lines[lineNumber - 1].length);
+            
+            const lineHeight = 19.5;
+            const scrollPosition = (lineNumber - 1) * lineHeight;
+            const container = document.getElementById('editorContainer');
+            if (container) {
+                container.scrollTop = scrollPosition - 100;
+            }
+        }
 
-btnCreate.addEventListener('click', () => modal.classList.add('open'));
-function closeModal(){ modal.classList.remove('open'); }
-modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', closeModal));
-modal.querySelectorAll('.shape-card').forEach(el =>
-  el.addEventListener('click', () => { spawn(el.dataset.shape); closeModal(); })
-);
+        function loadData() {
+            const saved = localStorage.getItem('chugurhub_data');
+            if (saved) {
+                try {
+                    repos = JSON.parse(saved);
+                } catch(e) {
+                    repos = [];
+                }
+            }
+            
+            if (repos.length === 0) {
+                const demoRepo = {
+                    id: Date.now(),
+                    name: 'demo-site',
+                    description: 'Демонстрационный сайт',
+                    files: [
+                        {
+                            id: Date.now() + 1,
+                            name: 'index.html',
+                            content: '<!DOCTYPE html>\n<html>\n<head>\n    <title>Мой сайт</title>\n    <style>\n        body {\n            font-family: Arial;\n            text-align: center;\n            padding: 50px;\n            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n            color: white;\n        }\n        h1 { font-size: 3em; }\n    </style>\n</head>\n<body>\n    <h1>🚀 ChugurHub работает!</h1>\n    <p>Это демонстрационная страница</p>\n</body>\n</html>'
+                        }
+                    ]
+                };
+                repos.push(demoRepo);
+                saveData();
+            }
+        }
 
-window.loadScene = function(data){
-  if(typeof data === 'string') data = JSON.parse(data);
-  if(applySceneData(data)) toast('Сцена загружена');
-};
+        function saveData() {
+            localStorage.setItem('chugurhub_data', JSON.stringify(repos));
+        }
 
-btnFull.addEventListener('click', async () => {
-  try{
-    if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
-    else await document.exitFullscreen();
-  }catch(err){ toast('Полный экран недоступен в этом браузере'); }
-});
-document.addEventListener('fullscreenchange', () =>
-  document.body.classList.toggle('fs', !!document.fullscreenElement));
+        function switchTab(tab, element) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            
+            if (tab === 'repos') {
+                showReposList();
+            } else {
+                showPagesList();
+            }
+        }
 
-const toastEl = document.getElementById('toast');
-let toastTimer;
-function toast(msg){
-  toastEl.textContent = msg;
-  toastEl.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
-}
-function updateCounter(){ document.getElementById('count').textContent = models.length; }
+        function showReposList() {
+            const content = document.getElementById('content');
+            
+            if (repos.length === 0) {
+                content.innerHTML = '<div class="empty-state"><div class="icon">📦</div><h2>Нет репозиториев</h2><p>Создайте свой первый репозиторий!</p></div>';
+                return;
+            }
 
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
+            let html = '';
+            repos.forEach(repo => {
+                const fileCount = repo.files ? repo.files.length : 0;
+                const hasIndex = repo.files && repo.files.some(f => f.name === 'index.html');
+                
+                html += '<div class="repo-card">';
+                html += '<h3>📁 ' + repo.name + '</h3>';
+                html += '<p>' + (repo.description || 'Нет описания') + ' • ' + fileCount + ' файл(ов)</p>';
+                html += '<div class="repo-actions">';
+                html += '<button onclick="openRepo(' + repo.id + ')">Открыть</button>';
+                if (hasIndex) {
+                    html += '<button class="btn-pages" onclick="openSiteInNewTab(' + repo.id + ')">🌐 Открыть сайт</button>';
+                }
+                html += '<button class="btn-create-page" onclick="showCreatePage(' + repo.id + ')">📄 Создать Pages</button>';
+                html += '</div>';
+                html += '</div>';
+            });
+            
+            content.innerHTML = html;
+        }
 
-const clock = new THREE.Clock();
-renderer.setAnimationLoop(() => {
-  const t = clock.getElapsedTime();
-  const now = performance.now();
-  controls.target.lerp(targetGoal, .06);
-  controls.update();
+        function showPagesList() {
+            const content = document.getElementById('content');
+            
+            const pagesRepos = repos.filter(repo => 
+                repo.isPage === true && repo.files && repo.files.some(f => f.name === 'index.html')
+            );
 
-  models.forEach(m => {
-    const mat = m.material;
-    mat.emissive.copy(mat.color);
-    let ei = 0;
-    if(m === selected) ei = .18 + .08 * Math.sin(t * 3.2);
-    if(mode === 'paint' && m === hoverModel){ mat.emissive.copy(paintColor); ei = .5; }
-    else if(mode === 'copy' && m === hoverModel){ mat.emissive.setRGB(.45,.95,1); ei = .45; }
-    else if(mode === 'delete' && m === hoverModel){ mat.emissive.setRGB(1, .25, .22); ei = .55; }
-    if(m.userData.flash){
-      const k = 1 - (now - m.userData.flash) / 350;
-      if(k > 0) ei = Math.max(ei, k * 1.15); else delete m.userData.flash;
-    }
-    mat.emissiveIntensity = ei;
-  });
+            if (pagesRepos.length === 0) {
+                content.innerHTML = '<div class="empty-state"><div class="icon">🌐</div><h2>Нет страниц</h2><p>Нажмите "Создать Pages" в репозитории с файлом index.html</p></div>';
+                return;
+            }
 
-  if(gizmo.visible){
-    const busy = scaling || movingAxis || rotating || moving;
-    arrows.forEach((a, i) => {
-      const bob = busy ? 0 : Math.sin(t * 2.4 + i * 1.05) * .05;
-      a.group.position.copy(a.dir).multiplyScalar(a.dist + bob);
-    });
-  }
-  renderer.render(scene, camera);
-});
+            let html = '<p style="margin-bottom: 20px; color: #8b949e;">Ваши опубликованные сайты:</p>';
+            pagesRepos.forEach(repo => {
+                html += '<div class="repo-card">';
+                html += '<h3>🌐 ' + (repo.pageName || repo.name) + '</h3>';
+                html += '<p>Репозиторий: ' + repo.name + '</p>';
+                html += '<div class="site-url">';
+                html += '<span>chugurhub.' + (repo.pageName || repo.name) + '.pages.app</span>';
+                html += '</div>';
+                html += '<div class="repo-actions">';
+                html += '<button class="btn-preview" onclick="openSiteInNewTab(' + repo.id + ')">↗ Открыть в новой вкладке</button>';
+                html += '<button class="btn-danger" onclick="deletePage(' + repo.id + ')">🗑 Удалить страницу</button>';
+                html += '</div>';
+                html += '</div>';
+            });
+            
+            content.innerHTML = html;
+        }
 
-updateRepoList();
-updateRepoLabel();
-</script>
+        function showCreatePage(repoId) {
+            const repo = repos.find(r => r.id === repoId);
+            if (!repo) {
+                showToast('Репозиторий не найден!');
+                return;
+            }
+
+            const hasIndex = repo.files && repo.files.some(f => f.name === 'index.html');
+            if (!hasIndex) {
+                showToast('Сначала создайте файл index.html в репозитории!');
+                return;
+            }
+
+            currentRepo = repo;
+            document.getElementById('createPageModal').classList.add('show');
+            document.getElementById('pageName').value = repo.name + '-page';
+        }
+
+        function createPage() {
+            const pageName = document.getElementById('pageName').value.trim();
+            
+            if (!pageName) {
+                showToast('Введите название страницы!');
+                return;
+            }
+
+            if (!currentRepo) {
+                showToast('Ошибка!');
+                return;
+            }
+
+            const hasIndex = currentRepo.files && currentRepo.files.some(f => f.name === 'index.html');
+            if (!hasIndex) {
+                showToast('Нет файла index.html!');
+                return;
+            }
+
+            currentRepo.isPage = true;
+            currentRepo.pageName = pageName;
+            
+            saveData();
+            closeModal('createPageModal');
+            showReposList();
+            showToast('Страница создана! Перейдите во вкладку Pages');
+        }
+
+        function deletePage(id) {
+            if (confirm('Удалить эту страницу?')) {
+                const repo = repos.find(r => r.id === id);
+                if (repo) {
+                    repo.isPage = false;
+                    delete repo.pageName;
+                    saveData();
+                    showPagesList();
+                    showToast('Страница удалена');
+                }
+            }
+        }
+
+        function openSiteInNewTab(id) {
+            const repo = repos.find(r => r.id === id);
+            if (!repo) return;
+            
+            const indexFile = repo.files.find(f => f.name === 'index.html');
+            if (!indexFile) return;
+            
+            const blob = new Blob([indexFile.content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            window.open(url, '_blank');
+            
+            const pageName = repo.pageName || repo.name;
+            showToast('Сайт открыт: chugurhub.' + pageName + '.pages.app');
+        }
+
+        function showCreateRepo() {
+            document.getElementById('createRepoModal').classList.add('show');
+            document.getElementById('repoName').value = '';
+            document.getElementById('repoDesc').value = '';
+        }
+
+        function createRepo() {
+            const name = document.getElementById('repoName').value.trim();
+            const description = document.getElementById('repoDesc').value.trim();
+            
+            if (!name) {
+                showToast('Введите название!');
+                return;
+            }
+
+            const repo = {
+                id: Date.now(),
+                name: name,
+                description: description,
+                files: [],
+                isPage: false
+            };
+
+            repos.push(repo);
+            saveData();
+            closeModal('createRepoModal');
+            showReposList();
+            showToast('Репозиторий создан!');
+        }
+
+        function openRepo(id) {
+            currentRepo = repos.find(r => r.id === id);
+            if (!currentRepo) return;
+            
+            const content = document.getElementById('content');
+            
+            let html = '<div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">';
+            html += '<button class="btn-secondary" onclick="showReposList()">← Назад</button> ';
+            html += '<button onclick="showCreateFile()">+ Файл</button>';
+            
+            const hasIndex = currentRepo.files.some(f => f.name === 'index.html');
+            if (hasIndex) {
+                html += '<button class="btn-pages" onclick="openSiteInNewTab(' + currentRepo.id + ')">🌐 Сайт</button>';
+                html += '<button class="btn-create-page" onclick="showCreatePage(' + currentRepo.id + ')">📄 Создать Pages</button>';
+            }
+            html += '</div>';
+            html += '<h2 style="margin-bottom: 15px;">📁 ' + currentRepo.name + '</h2>';
+            
+            if (currentRepo.files && currentRepo.files.length > 0) {
+                currentRepo.files.forEach(file => {
+                    const icon = getFileIcon(file.name);
+                    html += '<div class="file-item">';
+                    html += '<span>' + icon + '</span>';
+                    html += '<span class="file-name">' + file.name + '</span>';
+                    html += '<button onclick="openFile(' + file.id + ')">Открыть</button>';
+                    html += '<button class="btn-danger" onclick="deleteFile(' + file.id + ')">🗑</button>';
+                    html += '</div>';
+                });
+            } else {
+                html += '<p style="color: #8b949e; text-align: center; padding: 20px;">Нет файлов. Создайте файл index.html чтобы опубликовать сайт!</p>';
+            }
+            
+            content.innerHTML = html;
+        }
+
+        function showCreateFile() {
+            document.getElementById('createFileModal').classList.add('show');
+            document.getElementById('fileName').value = '';
+        }
+
+        function createFile() {
+            const name = document.getElementById('fileName').value.trim();
+            
+            if (!name) {
+                showToast('Введите название файла!');
+                return;
+            }
+
+            const file = {
+                id: Date.now(),
+                name: name,
+                content: name.endsWith('.html') ? '<!DOCTYPE html>\n<html>\n<head>\n    <title>Новая страница</title>\n</head>\n<body>\n    <h1>Привет, ChugurHub!</h1>\n</body>\n</html>' : ''
+            };
+
+            currentRepo.files.push(file);
+            saveData();
+            closeModal('createFileModal');
+            openRepo(currentRepo.id);
+            showToast('Файл создан!');
+        }
+
+        function openFile(id) {
+            currentFile = currentRepo.files.find(f => f.id === id);
+            if (!currentFile) return;
+            
+            const content = document.getElementById('content');
+            
+            let html = '<div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">';
+            html += '<button class="btn-secondary" onclick="openRepo(' + currentRepo.id + ')">← Назад</button> ';
+            html += '<button onclick="saveFile()">💾 Сохранить</button> ';
+            html += '<button class="btn-secondary" onclick="downloadCurrentFile()">⬇ Скачать</button> ';
+            if (currentFile.name.endsWith('.html')) {
+                html += '<button class="btn-preview" onclick="previewFile()">👁 Предпросмотр</button>';
+                html += '<button class="btn-pages" onclick="openSiteInNewTab(' + currentRepo.id + ')">🌐 Сайт</button>';
+                html += '<button class="btn-create-page" onclick="showCreatePage(' + currentRepo.id + ')">📄 Создать Pages</button>';
+            }
+            html += '</div>';
+            html += '<h3 style="margin-bottom: 10px;">' + getFileIcon(currentFile.name) + ' ' + currentFile.name + '</h3>';
+            
+            html += '<div class="search-panel">';
+            html += '<div class="search-input-container">';
+            html += '<input type="text" id="searchInput" class="search-input" placeholder="🔍 Поиск по коду..." oninput="performSearch()">';
+            html += '</div>';
+            html += '<div class="search-results" id="searchResults"></div>';
+            html += '</div>';
+            
+            html += '<div class="editor-container" id="editorContainer">';
+            html += '<div class="line-numbers" id="lineNumbers">1</div>';
+            html += '<textarea id="fileContent" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>';
+            html += '</div>';
+            
+            content.innerHTML = html;
+            
+            const textarea = document.getElementById('fileContent');
+            
+            if (textarea) {
+                textarea.value = '';
+                setTimeout(() => {
+                    textarea.value = currentFile.content;
+                    
+                    // СНАЧАЛА обновляем высоту, ПОТОМ номера строк
+                    autoResizeTextarea();
+                    setTimeout(() => {
+                        updateLineNumbers();
+                    }, 30);
+                }, 10);
+                
+                // Обработчик для любого изменения текста (ввод, удаление, вставка)
+                textarea.addEventListener('input', () => {
+                    autoResizeTextarea();
+                    setTimeout(() => {
+                        updateLineNumbers();
+                    }, 10);
+                });
+            }
+        }
+
+        function saveFile() {
+            const textarea = document.getElementById('fileContent');
+            if (textarea && currentFile) {
+                currentFile.content = textarea.value;
+                saveData();
+                showToast('Сохранено!');
+            }
+        }
+
+        function downloadCurrentFile() {
+            if (!currentFile) return;
+            const textarea = document.getElementById('fileContent');
+            const content = textarea ? textarea.value : currentFile.content;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentFile.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Файл скачан: ' + currentFile.name);
+        }
+
+        function previewFile() {
+            const textarea = document.getElementById('fileContent');
+            if (textarea) {
+                currentFile.content = textarea.value;
+                
+                const content = document.getElementById('content');
+                content.innerHTML = '<button class="btn-secondary" onclick="openFile(' + currentFile.id + ')">← Назад</button><br><br>';
+                
+                const blob = new Blob([currentFile.content], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100%';
+                iframe.style.height = '500px';
+                iframe.style.background = 'white';
+                iframe.style.border = 'none';
+                iframe.style.borderRadius = '8px';
+                iframe.src = url;
+                
+                content.appendChild(iframe);
+                
+                setTimeout(() => saveData(), 0);
+            }
+        }
+
+        function deleteFile(id) {
+            if (confirm('Удалить этот файл?')) {
+                currentRepo.files = currentRepo.files.filter(f => f.id !== id);
+                saveData();
+                openRepo(currentRepo.id);
+                showToast('Файл удалён');
+            }
+        }
+
+        function getFileIcon(name) {
+            if (name.endsWith('.html')) return '🌐';
+            if (name.endsWith('.css')) return '🎨';
+            if (name.endsWith('.js')) return '⚡';
+            if (name.endsWith('.json')) return '📋';
+            if (name.endsWith('.md')) return '📝';
+            if (name.endsWith('.py')) return '🐍';
+            return '📄';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+
+        loadData();
+        showReposList();
+    </script>
 </body>
  </html>
