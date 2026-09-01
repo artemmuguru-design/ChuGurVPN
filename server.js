@@ -12,13 +12,11 @@ const PORT=process.env.PORT||3000;
 app.use(express.json({limit:'5mb'}));
 app.use(express.static(path.join(__dirname,'public')));
 
-// База данных в памяти
-let users=new Map(); // username -> {ws, lastSeen, avatar}
-let messages=[]; // общие сообщения
-let privateMessages=new Map(); // "user1_user2" -> [messages]
+let users=new Map();
+let messages=[];
+let privateMessages=new Map();
 let bannedNames=new Set();
 
-// Загрузка из файла при старте
 const DATA_FILE=path.join(__dirname,'data.json');
 function loadData(){
 try{
@@ -27,7 +25,7 @@ const d=JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));
 messages=d.messages||[];
 privateMessages=new Map(Object.entries(d.privateMessages||{}));
 bannedNames=new Set(d.bannedNames||[]);
-console.log('📂 Загружено',messages.length,'сообщений');
+console.log('📂 Loaded',messages.length,'messages');
 }
 }catch(e){console.error('Load error:',e)}
 }
@@ -43,7 +41,6 @@ bannedNames:[...bannedNames]
 loadData();
 setInterval(saveData,30000);
 
-// Генерация аватара (цвет по имени)
 function getAvatarColor(name){
 let hash=0;
 for(let i=0;i<name.length;i++)hash=name.charCodeAt(i)+((hash<<5)-hash);
@@ -59,7 +56,7 @@ wss.on('connection',(ws)=>{
 ws.id=Date.now()+Math.random();
 ws.username=null;
 ws.typingTimeout=null;
-console.log('[+] Подключение',ws.id);
+console.log('[+] Connected',ws.id);
 
 ws.on('message',(raw)=>{
 try{
@@ -68,11 +65,11 @@ const msg=JSON.parse(raw);
 if(msg.type==='check_username'){
 const name=msg.username;
 if(!isValidUsername(name)){
-ws.send(JSON.stringify({type:'username_error',msg:'Ник должен быть 3-20 символов (a-z, 0-9, _)'}));
+ws.send(JSON.stringify({type:'username_error',msg:'Ник: 3-20 символов (a-z, 0-9, _)'}));
 }else if(users.has(name)){
-ws.send(JSON.stringify({type:'username_error',msg:'Этот ник уже занят'}));
+ws.send(JSON.stringify({type:'username_error',msg:'Ник уже занят'}));
 }else if(bannedNames.has(name)){
-ws.send(JSON.stringify({type:'username_error',msg:'Этот ник заблокирован'}));
+ws.send(JSON.stringify({type:'username_error',msg:'Ник заблокирован'}));
 }else{
 ws.send(JSON.stringify({type:'username_ok'}));
 }
@@ -151,11 +148,11 @@ return;
 }
 
 if(msg.type==='get_private_history'){
-const with=msg.with;
-if(!with)return;
-const key=[ws.username,with].sort().join('_');
+const partner=msg.withUser;
+if(!partner)return;
+const key=[ws.username,partner].sort().join('_');
 const hist=privateMessages.get(key)||[];
-ws.send(JSON.stringify({type:'private_history',with:with,messages:hist}));
+ws.send(JSON.stringify({type:'private_history',withUser:partner,messages:hist}));
 return;
 }
 
@@ -204,7 +201,7 @@ ws.on('close',()=>{
 if(ws.username){
 users.delete(ws.username);
 broadcast({type:'user_left',username:ws.username,users:[...users.keys()]});
-console.log('[-]',ws.username,'вышел');
+console.log('[-]',ws.username,'left');
 }
 });
 
@@ -224,5 +221,4 @@ app.get('/health',(req,res)=>res.send('ok'));
 
 server.listen(PORT,'0.0.0.0',()=>{
 console.log('🚀 Messenger on port',PORT);
-console.log('📁 Public:',path.join(__dirname,'public'));
 });
