@@ -1,113 +1,91 @@
-const WebSocket=require('ws');
-const http=require('http');
-const fs=require('fs');
-const path=require('path');
+const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
+const path = require('path');
 
-const PORT=process.env.PORT||3000;
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-const server=http.createServer((req,res)=>{
-if(req.url==='/'||req.url==='/index.html'){
-const filePath=path.join(__dirname,'index.html');
-fs.readFile(filePath,(err,data)=>{
-if(err){
-console.error('❌ Cannot find index.html');
-res.writeHead(500);
-res.end('Error: index.html not found');
-return;
-}
-res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
-res.end(data);
-});
-}else if(req.url==='/health'){
-res.writeHead(200);
-res.end('ok');
-}else{
-res.writeHead(404);
-res.end('Not found');
-}
-});
+const PORT = process.env.PORT || 3000;
 
-const wss=new WebSocket.Server({server});
-const servers={1:{players:new Map(),max:10},2:{players:new Map(),max:10}};
-let nextId=1;
+app.use(express.static(path.join(__dirname, 'public')));
 
-function broadcast(sid,msg,exId){
-if(!sid||!servers[sid])return;
-const d=JSON.stringify(msg);
-servers[sid].players.forEach((p,pid)=>{
-if(pid!==exId&&p.readyState===WebSocket.OPEN){
-try{p.send(d)}catch(e){}
-}
-});
-}
+let messages = [];
+let users = new Map();
 
-function sendStatus(){
-const s1=servers[1].players.size;
-const s2=servers[2].players.size;
-const msg=JSON.stringify({type:'status',s1,s2});
-wss.clients.forEach(ws=>{
-if(ws.readyState===WebSocket.OPEN){
-try{ws.send(msg)}catch(e){}
-}
-});
-}
+wss.on('connection', (ws) => {
+    ws.id = Date.now();
+    ws.username = null;
 
-wss.on('connection',(ws)=>{
-ws.id=nextId++;
-ws.serverId=null;
-ws.isAlive=true;
-console.log('[+] Player',ws.id,'connected');
+    ws.on('message', (raw) => {
+        try {
+            const msg = JSON.parse(raw);
 
-ws.on('pong',()=>{ws.isAlive=true});
+            if (msg.type === 'login') {
+                ws.username = msg.username;
+                users.set(ws.id, ws);
+                
+                // Отправляем историю сообщений
+                ws.send(JSON.stringify({
+                    type: 'history',
+                    messages: messages.slice(-50)
+                }));
 
-ws.on('message',(raw)=>{
-try{
-const msg=JSON.parse(raw);
-if(msg.type==='join'){
-const sid=parseInt(msg.serverId);
-if(!servers[sid]){
-ws.send(JSON.stringify({type:'error',msg:'Invalid server'}));
-return;
-}
-if(servers[sid].players.size>=servers[sid].max){
-ws.send(JSON.stringify({type:'error',msg:'Server full'}));
-return;
-}
-ws.serverId=sid;
-servers[sid].players.set(ws.id,ws);
-broadcast(sid,{type:'player_joined',id:ws.id},ws.id);
-ws.send(JSON.stringify({type:'welcome',id:ws.id,serverId:sid,count:servers[sid].players.size,players:[]}));
-console.log('[JOIN] P'+ws.id+'-> S'+sid);
-sendStatus();
-}
-}catch(e){
-console.error('[ERR]',e);
-}
+                // Уведомляем всех о новом пользователе
+                broadcast({
+                    type: 'user_joined',
+                    username: ws.username,
+                    users: Array.from(users.values()).map(u => u.username)
+                });
+
+                console.log(`[+] ${ws.username} joined`);
+            }
+            else if (msg.type === 'message' && ws.username) {
+                const message = {
+                    id: Date.now(),
+                    username: ws.username,
+                    text: msg.text,
+                    time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                };
+                
+                messages.push(message);
+                if (messages.length > 100) messages.shift();
+
+                broadcast({
+                    type: 'message',
+                    message: message
+                });
+            }
+        } catch (e) {
+            console.error('[ERR]', e);
+        }
+    });
+
+    ws.on('close', () => {
+        if (ws.username) {
+            users.delete(ws.id);
+            broadcast({
+                type: 'user_left',
+                username: ws.username,
+                users: Array.from(users.values()).map(u => u.username)
+            });
+            console.log(`[-] ${ws.username} left`);
+        }
+    });
+
+    ws.on('error', (e) => console.error('[WS-ERR]', e.message));
 });
 
-ws.on('close',()=>{
-if(ws.serverId&&servers[ws.serverId].players.has(ws.id)){
-const sid=ws.serverId;
-servers[sid].players.delete(ws.id);
-broadcast(sid,{type:'player_left',id:ws.id});
-console.log('[-] P'+ws.id+'left');
-sendStatus();
+function broadcast(msg, excludeId = null) {
+    const data = JSON.stringify(msg);
+    users.forEach((ws, id) => {
+        if (id !== excludeId && ws.readyState === WebSocket.OPEN) {
+            try { ws.send(data); } catch (e) {}
+        }
+    });
 }
-});
 
-ws.on('error',(e)=>console.error('[WS-ERR]',e.message));
-});
-
-setInterval(()=>{
-wss.clients.forEach(ws=>{
-if(ws.isAlive===false)return ws.terminate();
-ws.isAlive=false;
-try{ws.ping()}catch(e){}
-});
-sendStatus();
-},15000);
-
-server.listen(PORT,'0.0.0.0',()=>{
-console.log('🚀 Server on port',PORT);
-console.log('📁 Looking for index.html in:',__dirname);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Messenger server on port ${PORT}`);
 });
