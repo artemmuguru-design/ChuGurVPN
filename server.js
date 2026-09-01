@@ -15,7 +15,6 @@ app.use(express.static(path.join(__dirname,'public')));
 let users=new Map();
 let messages=[];
 let privateMessages=new Map();
-let bannedNames=new Set();
 
 const DATA_FILE=path.join(__dirname,'data.json');
 function loadData(){
@@ -24,8 +23,7 @@ if(fs.existsSync(DATA_FILE)){
 const d=JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));
 messages=d.messages||[];
 privateMessages=new Map(Object.entries(d.privateMessages||{}));
-bannedNames=new Set(d.bannedNames||[]);
-console.log('📂 Loaded',messages.length,'messages');
+console.log(' Loaded',messages.length,'messages');
 }
 }catch(e){console.error('Load error:',e)}
 }
@@ -33,8 +31,7 @@ function saveData(){
 try{
 fs.writeFileSync(DATA_FILE,JSON.stringify({
 messages:messages.slice(-500),
-privateMessages:Object.fromEntries(privateMessages),
-bannedNames:[...bannedNames]
+privateMessages:Object.fromEntries(privateMessages)
 }));
 }catch(e){console.error('Save error:',e)}
 }
@@ -50,6 +47,11 @@ return colors[Math.abs(hash)%colors.length];
 
 function isValidUsername(name){
 return /^[a-zA-Z0-9_]{3,20}$/.test(name);
+}
+
+function getLastMessage(key){
+const arr=privateMessages.get(key)||[];
+return arr.length>0?arr[arr.length-1]:null;
 }
 
 wss.on('connection',(ws)=>{
@@ -68,8 +70,6 @@ if(!isValidUsername(name)){
 ws.send(JSON.stringify({type:'username_error',msg:'Ник: 3-20 символов (a-z, 0-9, _)'}));
 }else if(users.has(name)){
 ws.send(JSON.stringify({type:'username_error',msg:'Ник уже занят'}));
-}else if(bannedNames.has(name)){
-ws.send(JSON.stringify({type:'username_error',msg:'Ник заблокирован'}));
 }else{
 ws.send(JSON.stringify({type:'username_ok'}));
 }
@@ -88,13 +88,45 @@ return;
 }
 ws.username=name;
 users.set(name,{ws,joinedAt:Date.now(),avatar:getAvatarColor(name)});
+
+// Собираем список чатов для пользователя
+const chats=[];
+// Общий чат
+const lastPublic=messages.length>0?messages[messages.length-1]:null;
+chats.push({
+id:'general',
+name:'Общий чат',
+avatar:'#00d4ff',
+lastMessage:lastPublic?{text:lastPublic.text||'[картинка]',time:lastPublic.time,username:lastPublic.username}:null,
+unread:0,
+isGeneral:true
+});
+
+// Личные чаты
+users.forEach((u,uname)=>{
+if(uname!==name){
+const key=[name,uname].sort().join('_');
+const last=getLastMessage(key);
+chats.push({
+id:uname,
+name:uname,
+avatar:getAvatarColor(uname),
+lastMessage:last?{text:last.text,time:last.time,username:last.from}:null,
+unread:0,
+isGeneral:false
+});
+}
+});
+
 ws.send(JSON.stringify({
 type:'welcome',
 username:name,
 avatar:getAvatarColor(name),
 users:[...users.keys()],
-messages:messages.slice(-100)
+messages:messages.slice(-100),
+chats:chats
 }));
+
 broadcast({type:'user_joined',username:name,avatar:getAvatarColor(name),users:[...users.keys()]});
 console.log('[LOGIN]',name);
 return;
@@ -139,11 +171,15 @@ time:Date.now()
 if(!privateMessages.has(key))privateMessages.set(key,[]);
 privateMessages.get(key).push(m);
 if(privateMessages.get(key).length>200)privateMessages.get(key).shift();
+
 const target=users.get(to);
 if(target&&target.ws.readyState===WebSocket.OPEN){
 target.ws.send(JSON.stringify({type:'private_message',message:m}));
 }
 ws.send(JSON.stringify({type:'private_message',message:m}));
+
+// Обновляем список чатов у всех
+broadcastChatsUpdate();
 return;
 }
 
@@ -207,6 +243,38 @@ console.log('[-]',ws.username,'left');
 
 ws.on('error',(e)=>console.error('[WS-ERR]',e.message));
 });
+
+function broadcastChatsUpdate(){
+users.forEach((u,name)=>{
+if(u.ws.readyState===WebSocket.OPEN){
+const chats=[];
+const lastPublic=messages.length>0?messages[messages.length-1]:null;
+chats.push({
+id:'general',
+name:'Общий чат',
+avatar:'#00d4ff',
+lastMessage:lastPublic?{text:lastPublic.text||'[картинка]',time:lastPublic.time,username:lastPublic.username}:null,
+unread:0,
+isGeneral:true
+});
+users.forEach((u2,uname)=>{
+if(uname!==name){
+const key=[name,uname].sort().join('_');
+const last=getLastMessage(key);
+chats.push({
+id:uname,
+name:uname,
+avatar:getAvatarColor(uname),
+lastMessage:last?{text:last.text,time:last.time,username:last.from}:null,
+unread:0,
+isGeneral:false
+});
+}
+});
+try{u.ws.send(JSON.stringify({type:'chats_update',chats:chats}))}catch(e){}
+}
+});
+}
 
 function broadcast(msg,exclude=null){
 const d=JSON.stringify(msg);
